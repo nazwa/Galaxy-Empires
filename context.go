@@ -2,6 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"gopkg.in/igm/sockjs-go.v2/sockjs"
+	"errors"
+	"log"
+	
 )
 
 type SocketContext struct {
@@ -15,13 +19,13 @@ var (
 	ErrorInternalServerError error = errors.New("{\"error\":\"Woops! Something went wrong.\"}")
 )
 
-func (c *SocketContext) JSON(v interface{}, session sockjs.Session) error {
+func (c *SocketContext) JSON(v interface{}) error {
 	data, err := json.Marshal(v)
 	if err != nil {
 		return nil
 	}
 
-	return session.Send(string(data))
+	return c.Session.Send(string(data))
 }
 
 func InternalServerError(err error, session sockjs.Session) {

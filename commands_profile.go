@@ -4,7 +4,7 @@ import ()
 
 func UserProfileHandler(c *SocketContext) error {
 
-	return SendJson(Store, c.Session)
+	return c.JSON(Store)
 }
 
 func init() {

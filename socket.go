@@ -21,12 +21,12 @@ func routerHandler(session sockjs.Session) {
 				InternalServerError(err, session)
 				continue
 			}
+			context.Session = session
 
-			if err := CheckToken(session); err != nil {
+			if err := CheckToken(context); err != nil {
 
 			}
 
-			context.Session = session
 			if err = ExecuteCommand(context); err != nil {
 				InternalServerError(err, session)
 				continue
