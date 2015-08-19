@@ -1,0 +1,32 @@
+{
+	"1": {
+		"ID": "1",
+		"Name": "Steel Mine",
+		"Category": "Mines",
+		"BaseCost": {
+			"Metal": 100,
+			"Silicon": 100,
+			"Uranium": 0,
+			"Energy": 100
+		}
+	},	
+	"2": {
+		"ID": "2",
+		"Name": "Radar",
+		"Category": "Base",
+		"BaseCost": {
+			"Metal": 100,
+			"Silicon": 100,
+			"Uranium": 0,
+			"Energy": 100
+		},
+		"Requirements": {
+			"Research": [
+				{
+					"ID": "1",
+					"Level": 2
+				}
+			]
+		}
+	}
+}

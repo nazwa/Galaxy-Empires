@@ -1,0 +1,24 @@
+<script src="http://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.0.3/sockjs.js"></script>
+<script>
+
+if (!window.location.origin) { // Some browsers (mainly IE) do not have this property, so we need to build it manually...
+  window.location.origin = window.location.protocol + '//' + window.location.hostname + (window.location.port ? (':' + window.location.port) : '');
+}
+
+
+var sock = new SockJS(window.location.origin+'/socket')
+var connected = false;
+sock.onopen = function() {
+    console.log('open');
+connected = true;
+};
+sock.onmessage = function(e) {
+    console.log(e.data);
+};
+sock.onclose = function() {
+    console.log('close');
+};
+setTimeout(function(){
+	sock.send('{"command":"data"}');
+}, 1000);
+</script>

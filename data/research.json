@@ -1,0 +1,13 @@
+{
+	"1": {
+		"ID": "1",
+		"Name": "Computer Technology",
+		"Category": "",
+		"Description": "",
+		"BaseCost": {
+			"Metal": 10,
+			"Silicon": 10,
+			"Uranium": 0
+		}
+	}
+}
