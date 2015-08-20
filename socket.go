@@ -16,24 +16,25 @@ var (
 func routerHandler(session sockjs.Session) {
 	for {
 		if msg, err := session.Recv(); err == nil {
-			context := &SocketContext{}
-			if err = json.Unmarshal([]byte(msg), context); err != nil {
-				InternalServerError(err, session)
-				continue
+			context := &SocketContext{
+				Session: session,
 			}
-			context.Session = session
-
+			if err = json.Unmarshal([]byte(msg), context); err != nil {
+				context.InternalServerError(err)
+				break
+			}
 			if err := CheckToken(context); err != nil {
-
+				context.JSON(H{"error": err.Error()})
+				continue
 			}
 
 			if err = ExecuteCommand(context); err != nil {
-				InternalServerError(err, session)
-				continue
+				context.InternalServerError(err)
+				break
 			}
-		} else {
-			InternalServerError(err, session)
+			continue
 		}
+		break
 	}
 }
 

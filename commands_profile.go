@@ -4,7 +4,7 @@ import ()
 
 func UserProfileHandler(c *SocketContext) error {
 
-	return c.JSON(Store)
+	return c.JSON(BaseData)
 }
 
 func init() {

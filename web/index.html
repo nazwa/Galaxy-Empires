@@ -18,7 +18,9 @@ sock.onmessage = function(e) {
 sock.onclose = function() {
     console.log('close');
 };
-setTimeout(function(){
-	sock.send('{"command":"data"}');
+setInterval(function(){
+	if( connected) {
+		sock.send('{"command":"data"}');
+	}
 }, 1000);
 </script>

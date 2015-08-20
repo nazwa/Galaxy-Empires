@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/kardianos/osext"
 	"log"
 	"net/http"
@@ -10,19 +9,20 @@ import (
 )
 
 var (
-	ROOT_DIR string
-	Store    *BaseDataStore
-	JWTKey   []byte = []byte("This is a key")
+	ROOT_DIR   string
+	BaseData   *BaseDataStore
+	PlayerData *PlayerDataStore
+	JWTKey     []byte = []byte("This is a key")
 )
 
 func main() {
 	ROOT_DIR, _ = osext.ExecutableFolder()
 
-	Store = NewBaseDataStore("data/buildings.json", "data/research.json")
-	for _, item := range Store.Buildings {
-		fmt.Println(item)
-	}
+	BaseData = NewBaseDataStore("data/buildings.json", "data/research.json")
+	PlayerData = NewPlayerDataStore("data/players.json")
 
+	http.HandleFunc("/account/login", LoginHandler)
+	http.HandleFunc("/account/register", RegisterHandler)
 	http.Handle("/socket/", sockjs.NewHandler("/socket", sockjs.DefaultOptions, routerHandler))
 	http.Handle("/", http.FileServer(http.Dir("web/")))
 

@@ -15,6 +15,7 @@ type SocketContext struct {
 	Session sockjs.Session
 }
 
+type H map[string]interface{}
 var (
 	ErrorInternalServerError error = errors.New("{\"error\":\"Woops! Something went wrong.\"}")
 )
@@ -22,15 +23,14 @@ var (
 func (c *SocketContext) JSON(v interface{}) error {
 	data, err := json.Marshal(v)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	return c.Session.Send(string(data))
 }
 
-func InternalServerError(err error, session sockjs.Session) {
-	// LOG ERROR
+func (c *SocketContext) InternalServerError(err error) {
 	log.Println(err)
-
-	session.Send(ErrorInternalServerError.Error())
+	
+	c.JSON(H{"error": "Woops! Something went wrong"})
 }
