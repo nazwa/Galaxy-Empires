@@ -1,35 +1,56 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
 
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
+var (
+	ErrorInvalidCredentials error = errors.New("Invalid credentials")
+)
+
+func LoginHandler(c *gin.Context) {
+	var player *PlayerStruct
+
+	login := c.MustGet(gin.BindKey).(*LoginStruct)
+
+	if player = PlayerData.SafeGetByEmail(login.Email); player == nil {
+		c.AbortWithError(http.StatusUnauthorized, ErrorInvalidCredentials).SetType(gin.ErrorTypePublic)
+		return
+	}
+
+	if err := player.CheckPassword(login.Password); err != nil {
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			c.AbortWithError(http.StatusUnauthorized, ErrorInvalidCredentials).SetType(gin.ErrorTypePublic)
+		} else {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
+		return
+	}
+	sendLoginToken(c, player)
 
 }
 
-func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	player := &PlayerStruct{
-		Email:    r.PostFormValue("email"),
-		Name:     r.PostFormValue("name"),
-		Password: r.PostFormValue("password"),
-	}
+func RegisterHandler(c *gin.Context) {
+	player := c.MustGet(gin.BindKey).(*PlayerStruct)
 
-	if err := player.Validate(); err != nil {
-		fmt.Fprintf(w, "{\"error\":\"%s\"}", err.Error())
-		return
-	}
+	fmt.Println(player)
 
 	if err := player.HashPassword(); err != nil {
-		fmt.Fprintf(w, "{\"error\":\"%s\"}", err.Error())
+		c.AbortWithError(http.StatusUnauthorized, err)
 		return
 	}
 	PlayerData.SafeAdd(player)
-	if token, err := player.CreateLoginToken(); err != nil {
-		fmt.Fprintf(w, "{\"token\":\"%s\"}", token)
-	} else {
-		fmt.Fprintf(w, "{\"error\":\"%s\"}", err.Error())
-	}
+	sendLoginToken(c, player)
+}
 
+func sendLoginToken(c *gin.Context, player *PlayerStruct) {
+	if token, err := player.CreateLoginToken(); err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	} else {
+		c.JSON(http.StatusOK, gin.H{"Token": token})
+	}
 }

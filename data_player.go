@@ -2,6 +2,7 @@ package main
 
 import (
 	"bitbucket.org/tidepayments/gohelpers/tokens"
+	"strings"
 	"sync"
 )
 
@@ -43,4 +44,16 @@ func (p *PlayerDataStore) SafeGet(id string) *PlayerStruct {
 	defer p.m.RUnlock()
 
 	return p.Players[id]
+}
+
+func (p *PlayerDataStore) SafeGetByEmail(email string) *PlayerStruct {
+	p.m.RLock()
+	defer p.m.RUnlock()
+
+	for _, player := range p.Players {
+		if strings.EqualFold(email, player.Email) {
+			return player
+		}
+	}
+	return nil
 }

@@ -1,11 +1,10 @@
 package main
 
 import (
+	"bitbucket.org/nazwa/galaxy-empires/middleware"
+	"github.com/gin-gonic/gin"
 	"github.com/kardianos/osext"
 	"log"
-	"net/http"
-
-	"gopkg.in/igm/sockjs-go.v2/sockjs"
 )
 
 var (
@@ -21,12 +20,19 @@ func main() {
 	BaseData = NewBaseDataStore("data/buildings.json", "data/research.json")
 	PlayerData = NewPlayerDataStore("data/players.json")
 
-	http.HandleFunc("/account/login", LoginHandler)
-	http.HandleFunc("/account/register", RegisterHandler)
-	http.Handle("/socket/", sockjs.NewHandler("/socket", sockjs.DefaultOptions, routerHandler))
-	http.Handle("/", http.FileServer(http.Dir("web/")))
+	r := gin.New()
+	r.Use(gin.Logger())
+	r.Use(middleware.Errors("", "", nil))
+	r.Use(gin.Recovery())
+
+	r.POST("/account/login", gin.Bind(LoginStruct{}), LoginHandler)
+	r.POST("/account/register", gin.Bind(PlayerStruct{}), RegisterHandler)
+
+	r.Static("/", ROOT_DIR+"/web")
 
 	log.Println("Server started on port: 8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	if err := r.Run(":8080"); err != nil {
+		panic(err)
+	}
 
 }

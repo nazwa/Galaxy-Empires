@@ -1,42 +1,37 @@
 package main
 
 import (
-	"errors"
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
-	"regexp"
 	"time"
 )
 
+const (
+	BCRYPT_COMPLEXITY int = 12
+)
+
 type PlayerStruct struct {
-	ID       string
-	Name     string
-	Email    string
-	Password string
+	ID       string `binding:"omitempty,number"`
+	Name     string `form:"name" binding:"required,min=1,max=60"`
+	Email    string `form:"email" binding:"required,email"`
+	Password string `form:"password" binding:"required,min=5,max=60"`
 }
 
-func (p *PlayerStruct) Validate() error {
-	if l := len(p.Name); l < 1 || l > 50 {
-		return errors.New("Invalid name")
-	}
-	if l := len(p.Email); l < 1 || l > 150 {
-		return errors.New("Invalid email")
-	}
-	if m, _ := regexp.MatchString(`^([\w\.\_]{2,10})@(\w{1,}).([a-z]{2,4})$`, p.Email); !m {
-		return errors.New("Invalid email")
-	}
-	if l := len(p.Password); l < 5 || l > 50 {
-		return errors.New("Invalid password")
-	}
-	return nil
+type LoginStruct struct {
+	Email    string `form:"email" binding:"required,email"`
+	Password string `form:"password" binding:"required,min=5,max=60"`
 }
 
+func (p *PlayerStruct) GenerateHash(text string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(text), BCRYPT_COMPLEXITY)
+	return string(hash), err
+}
 func (p *PlayerStruct) HashPassword() error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(p.Password), 7)
+	hashedPassword, err := p.GenerateHash(p.Password)
 	if err == nil {
-		p.Password = string(hashedPassword)
+		p.Password = hashedPassword
 	}
-	return nil
+	return err
 }
 
 func (p *PlayerStruct) CreateLoginToken() (string, error) {
@@ -48,4 +43,8 @@ func (p *PlayerStruct) CreateLoginToken() (string, error) {
 	// Sign and get the complete encoded token as a string
 	return token.SignedString(JWTKey)
 
+}
+
+func (p *PlayerStruct) CheckPassword(password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(p.Password), []byte(password))
 }
