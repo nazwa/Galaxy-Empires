@@ -33,7 +33,8 @@ func Authentication(encryptionKey []byte) gin.HandlerFunc {
 		tokenHeader := c.Request.Header.Get(AuthTokenHeaderKey)
 
 		if len(tokenHeader) == 0 {
-
+			c.AbortWithError(http.StatusUnauthorized, ErrorInvalidToken).SetType(gin.ErrorTypePublic)
+			return
 		}
 
 		token, err := jwt.Parse(tokenHeader, func(t *jwt.Token) (interface{}, error) {
@@ -50,12 +51,11 @@ func Authentication(encryptionKey []byte) gin.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
-			c.Abort()
-			c.JSON(http.StatusUnauthorized, gin.H{"Error": err.Error()})
+			c.AbortWithError(http.StatusUnauthorized, ErrorInvalidToken).SetType(gin.ErrorTypePublic)
 			return
 		}
 
-		c.Set(AuthUserIDKey, int64(token.Claims["id"].(float64)))
+		c.Set(AuthUserIDKey, token.Claims["id"])
 		c.Set(AuthTokenKey, token)
 
 	}

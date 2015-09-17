@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
@@ -12,7 +11,23 @@ var (
 	ErrorInvalidCredentials error = errors.New("Invalid credentials")
 )
 
-func LoginHandler(c *gin.Context) {
+type AccountHandler struct {
+	RouterGroup *gin.RouterGroup
+}
+
+func (u *AccountHandler) Routes() {
+	u.RouterGroup.POST("/login", gin.Bind(LoginStruct{}), u.LoginHandler)
+	u.RouterGroup.POST("/register", gin.Bind(PlayerStruct{}), u.RegisterHandler)
+}
+
+func NewAccountHandler(r *gin.RouterGroup) *AccountHandler {
+	u := &AccountHandler{RouterGroup: r}
+	u.Routes()
+	return u
+}
+
+
+func (u *AccountHandler) LoginHandler(c *gin.Context) {
 	var player *PlayerStruct
 
 	login := c.MustGet(gin.BindKey).(*LoginStruct)
@@ -30,24 +45,22 @@ func LoginHandler(c *gin.Context) {
 		}
 		return
 	}
-	sendLoginToken(c, player)
+	u.sendLoginToken(c, player)
 
 }
 
-func RegisterHandler(c *gin.Context) {
+func (u *AccountHandler) RegisterHandler(c *gin.Context) {
 	player := c.MustGet(gin.BindKey).(*PlayerStruct)
-
-	fmt.Println(player)
 
 	if err := player.HashPassword(); err != nil {
 		c.AbortWithError(http.StatusUnauthorized, err)
 		return
 	}
 	PlayerData.SafeAdd(player)
-	sendLoginToken(c, player)
+	u.sendLoginToken(c, player)
 }
 
-func sendLoginToken(c *gin.Context, player *PlayerStruct) {
+func (u *AccountHandler) sendLoginToken(c *gin.Context, player *PlayerStruct) {
 	if token, err := player.CreateLoginToken(); err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	} else {

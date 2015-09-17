@@ -14,7 +14,7 @@ type PlayerStruct struct {
 	ID       string `binding:"omitempty,number"`
 	Name     string `form:"name" binding:"required,min=1,max=60"`
 	Email    string `form:"email" binding:"required,email"`
-	Password string `form:"password" binding:"required,min=5,max=60"`
+	Password string `form:"password" binding:"required,min=5,max=60" json:"-"`
 }
 
 type LoginStruct struct {

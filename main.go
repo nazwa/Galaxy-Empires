@@ -22,13 +22,14 @@ func main() {
 
 	r := gin.New()
 	r.Use(gin.Logger())
-	r.Use(middleware.Errors("", "", nil))
 	r.Use(gin.Recovery())
+	r.Use(middleware.Errors("", "", nil))
 
-	r.POST("/account/login", gin.Bind(LoginStruct{}), LoginHandler)
-	r.POST("/account/register", gin.Bind(PlayerStruct{}), RegisterHandler)
+	NewAccountHandler(r.Group("/account"))
+	NewPlayerHandler(r.Group("/player", middleware.Authentication(JWTKey)))
 
-	r.Static("/", ROOT_DIR+"/web")
+	r.Static("/assets", ROOT_DIR+"/web/assets")
+	r.StaticFile("/", ROOT_DIR + "/web/index.html")
 
 	log.Println("Server started on port: 8080")
 	if err := r.Run(":8080"); err != nil {
