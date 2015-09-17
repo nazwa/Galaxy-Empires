@@ -5,38 +5,12 @@ import (
 	"errors"
 	"fmt"
 	jwt "github.com/dgrijalva/jwt-go"
-	"gopkg.in/igm/sockjs-go.v2/sockjs"
 	"time"
 )
 
 var (
 	ErrorInvalidToken = errors.New("Invalid or expired token")
 )
-
-func routerHandler(session sockjs.Session) {
-	for {
-		if msg, err := session.Recv(); err == nil {
-			context := &SocketContext{
-				Session: session,
-			}
-			if err = json.Unmarshal([]byte(msg), context); err != nil {
-				context.InternalServerError(err)
-				break
-			}
-			if err := CheckToken(context); err != nil {
-				context.JSON(H{"error": err.Error()})
-				continue
-			}
-
-			if err = ExecuteCommand(context); err != nil {
-				context.InternalServerError(err)
-				break
-			}
-			continue
-		}
-		break
-	}
-}
 
 func CheckToken(c *SocketContext) error {
 	if len(c.Token) == 0 {

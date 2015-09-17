@@ -21,3 +21,7 @@ func NewBaseDataStore(buildings, research string) *BaseDataStore {
 
 	return store
 }
+
+func RegisterBuilding(building *BuildingStruct) {
+
+}
