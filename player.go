@@ -19,7 +19,7 @@ type PlayerStruct struct {
 
 type LoginStruct struct {
 	Email    string `form:"email" binding:"required,email"`
-	Password string `form:"password" binding:"required,min=5,max=60"`
+	Password string `form:"password" binding:"max=200"`
 }
 
 func (p *PlayerStruct) GenerateHash(text string) (string, error) {
