@@ -11,14 +11,13 @@ var (
 	ROOT_DIR   string
 	BaseData   *BaseDataStore
 	PlayerData *PlayerDataStore
-	Universe *UniverseStruct
+	Universe   *UniverseStruct
 	JWTKey     []byte = []byte("This is a key")
 )
 
 func main() {
 	Universe = NewUniverseStruct(1, 15, 5)
-		
-	
+
 	ROOT_DIR, _ = osext.ExecutableFolder()
 
 	BaseData = NewBaseDataStore("data/buildings.json", "data/research.json")
@@ -31,9 +30,10 @@ func main() {
 
 	NewAccountHandler(r.Group("/account"))
 	NewPlayerHandler(r.Group("/player", middleware.Authentication(JWTKey)))
+	NewPlanetHandler(r.Group("/planet", middleware.Authentication(JWTKey)))
 
 	r.Static("/assets", ROOT_DIR+"/web/assets")
-	r.StaticFile("/", ROOT_DIR + "/web/index.html")
+	r.StaticFile("/", ROOT_DIR+"/web/index.html")
 
 	log.Println("Server started on port: 8080")
 	if err := r.Run(":8080"); err != nil {

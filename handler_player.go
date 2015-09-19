@@ -29,4 +29,5 @@ func (p *PlayerHandler) Get(c *gin.Context) {
 
 func (p *PlayerHandler) GetData(c *gin.Context) {
 
+	c.JSON(http.StatusOK, BaseData)
 }

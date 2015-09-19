@@ -1,17 +1,98 @@
 {
 	"1": {
 		"ID": "1",
-		"Name": "Steel Mine",
-		"Category": "Mines",
+		"Name": "Metal Mine",
+		"Category": "Mine",
+		"Produces": "Metal",
 		"BaseCost": {
 			"Metal": 100,
 			"Silicon": 100,
 			"Uranium": 0,
 			"Energy": 100
+		},
+		"CostEquations": {
+			"a": 2,
+			"b": 1.5,
+			"c": 3
+		},
+		"BaseProduction": 100,
+		"ProductionEquations": {
+			"a": 1,
+			"b": 1,
+			"c": 1
 		}
 	},	
 	"2": {
 		"ID": "2",
+		"Name": "Silicon Mine",
+		"Category": "Mine",
+		"Produces": "Silicon",
+		"BaseCost": {
+			"Metal": 100,
+			"Silicon": 100,
+			"Uranium": 0,
+			"Energy": 100
+		},
+		"CostEquations": {
+			"a": 1,
+			"b": 1,
+			"c": 1
+		},
+		"BaseProduction": 100,
+		"ProductionEquations": {
+			"a": 1,
+			"b": 1,
+			"c": 1
+		}
+	},	
+	"3": {
+		"ID": "3",
+		"Name": "Uranium Mine",
+		"Category": "Mine",
+		"Produces": "Uranium",
+		"BaseCost": {
+			"Metal": 100,
+			"Silicon": 100,
+			"Uranium": 0,
+			"Energy": 100
+		},
+		"CostEquations": {
+			"a": 1,
+			"b": 1,
+			"c": 1
+		},
+		"BaseProduction": 100,
+		"ProductionEquations": {
+			"a": 1,
+			"b": 1,
+			"c": 1
+		}
+	},	
+	"4": {
+		"ID": "4",
+		"Name": "Power plant",
+		"Category": "Mine",
+		"Produces": "Energy",
+		"BaseCost": {
+			"Metal": 100,
+			"Silicon": 100,
+			"Uranium": 0,
+			"Energy": 100
+		},
+		"CostEquations": {
+			"a": 1,
+			"b": 1,
+			"c": 1
+		},
+		"BaseProduction": 100,
+		"ProductionEquations": {
+			"a": 1,
+			"b": 1,
+			"c": 1
+		}
+	},	
+	"5": {
+		"ID": "5",
 		"Name": "Radar",
 		"Category": "Base",
 		"BaseCost": {
@@ -30,3 +111,4 @@
 		}
 	}
 }
+		
