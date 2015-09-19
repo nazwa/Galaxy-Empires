@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"sync"
 	"time"
@@ -43,7 +44,7 @@ func GenerateNewPlanet(universe *UniverseStruct, baseData *BaseDataStore) (*Plan
 	planet.Buildings = make(map[string]int64)
 
 	// Set basic mine levels
-	planet.Buildings[MetalMineKey] = 0
+	planet.Buildings[MetalMineKey] = 25
 	planet.Buildings[SiliconMineKey] = 0
 	planet.Buildings[UraniumMineKey] = 0
 	planet.Buildings[PowerPlantKey] = 0
@@ -56,6 +57,7 @@ func GenerateNewPlanet(universe *UniverseStruct, baseData *BaseDataStore) (*Plan
 		Uranium: 0,
 		Energy:  0,
 	}
+	planet.ResourcesUpdateTime = time.Now()
 
 	universe.AddPlanet(position, planet)
 
@@ -77,10 +79,15 @@ func (p *PlanetStruct) RecalculateResources(baseData *BaseDataStore) {
 	p.Resources.Silicon += p.CalculateProduction(baseData.Buildings[SiliconMineKey], p.Buildings[SiliconMineKey], timeDiff)
 	p.Resources.Uranium += p.CalculateProduction(baseData.Buildings[UraniumMineKey], p.Buildings[UraniumMineKey], timeDiff)
 
+	p.ResourcesUpdateTime = now
 }
 
 func (p *PlanetStruct) CalculateProduction(building *BuildingStruct, level int64, timeDiff time.Duration) float64 {
-	production := math.Pow(building.ProductionEquations.a*float64(level)*building.ProductionEquations.b, building.ProductionEquations.c)
+	baseProduction := building.BaseProduction * building.ProductionEquations.A * float64(level) * building.ProductionEquations.B
+	production := baseProduction * math.Pow(building.ProductionEquations.C, float64(level))
 
-	return production * timeDiff.Seconds()
+	fmt.Println(baseProduction)
+	fmt.Println(production)
+	fmt.Println((production / 3600) * timeDiff.Seconds())
+	return (production / 3600) * timeDiff.Seconds()
 }

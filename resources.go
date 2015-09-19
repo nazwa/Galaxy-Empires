@@ -13,7 +13,7 @@ type ResourcesStruct struct {
 }
 
 type EquationStruct struct {
-	a float64
-	b float64
-	c float64
+	A float64 `json:"a"`
+	B float64 `json:"b"`
+	C float64 `json:"c"`
 }

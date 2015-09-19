@@ -11,14 +11,14 @@
 			"Energy": 100
 		},
 		"CostEquations": {
-			"a": 2,
-			"b": 1.5,
-			"c": 3
+			"a": 1,
+			"b": 1.1,
+			"c": 1
 		},
 		"BaseProduction": 100,
 		"ProductionEquations": {
 			"a": 1,
-			"b": 1,
+			"b": 1.1,
 			"c": 1
 		}
 	},	

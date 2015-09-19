@@ -7,7 +7,7 @@ type BuildingStruct struct {
 	Produces            string
 	Description         string
 	BaseCost            ResourcesStruct
-	BaseProduction      int64
+	BaseProduction      float64
 	Requirements        RequirementsStruct
 	CostEquations       EquationStruct
 	ProductionEquations EquationStruct
