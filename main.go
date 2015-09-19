@@ -11,10 +11,14 @@ var (
 	ROOT_DIR   string
 	BaseData   *BaseDataStore
 	PlayerData *PlayerDataStore
+	Universe *UniverseStruct
 	JWTKey     []byte = []byte("This is a key")
 )
 
 func main() {
+	Universe = NewUniverseStruct(1, 15, 5)
+		
+	
 	ROOT_DIR, _ = osext.ExecutableFolder()
 
 	BaseData = NewBaseDataStore("data/buildings.json", "data/research.json")

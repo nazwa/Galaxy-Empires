@@ -39,6 +39,13 @@ func (p *PlayerDataStore) SafeAdd(player *PlayerStruct) {
 	p.Players[token] = player
 }
 
+func (p *PlayerDataStore) SafeRemove(id string) {
+	p.m.RLock()
+	defer p.m.RUnlock()
+
+	delete(p.Players, id)
+}
+
 func (p *PlayerDataStore) SafeGet(id string) *PlayerStruct {
 	p.m.RLock()
 	defer p.m.RUnlock()

@@ -57,6 +57,19 @@ func (u *AccountHandler) RegisterHandler(c *gin.Context) {
 		return
 	}
 	PlayerData.SafeAdd(player)
+	
+	
+	// We have a player, let's make him a planet!
+	planet, err := GenerateNewPlanet(Universe, BaseData)
+	if err != nil {
+		PlayerData.SafeRemove(player.ID)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	
+	player.AddPlanet(planet)
+	
+	
 	u.sendLoginToken(c, player)
 }
 

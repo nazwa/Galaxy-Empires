@@ -4,6 +4,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"time"
+	"sync"
 )
 
 const (
@@ -11,10 +12,13 @@ const (
 )
 
 type PlayerStruct struct {
+	planetMutex sync.Mutex `json:"-"`
+	
 	ID       string `binding:"omitempty,number"`
 	Name     string `form:"name" binding:"required,min=1,max=60"`
 	Email    string `form:"email" binding:"required,email"`
 	Password string `form:"password" binding:"required,min=5,max=60" json:"-"`
+	Planets []*PlanetStruct
 }
 
 type LoginStruct struct {
@@ -47,4 +51,22 @@ func (p *PlayerStruct) CreateLoginToken() (string, error) {
 
 func (p *PlayerStruct) CheckPassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(p.Password), []byte(password))
+}
+
+func (p *PlayerStruct) AddPlanet(planet *PlanetStruct) {
+	if planet == nil {
+		return
+	}	
+	if planet.Owner == p {
+		return
+	}
+
+	p.planetMutex.Lock()
+	defer p.planetMutex.Unlock()	
+
+	if p.Planets == nil {
+		p.Planets = make([]*PlanetStruct, 0)
+	}
+	planet.Owner = p
+	p.Planets = append(p.Planets, planet)
 }
