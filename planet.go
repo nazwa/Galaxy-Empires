@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"sync"
 	"time"
 )
@@ -83,11 +82,5 @@ func (p *PlanetStruct) RecalculateResources(baseData *BaseDataStore) {
 }
 
 func (p *PlanetStruct) CalculateProduction(building *BuildingStruct, level int64, timeDiff time.Duration) float64 {
-	baseProduction := building.BaseProduction * building.ProductionEquations.A * float64(level) * building.ProductionEquations.B
-	production := baseProduction * math.Pow(building.ProductionEquations.C, float64(level))
-
-	fmt.Println(baseProduction)
-	fmt.Println(production)
-	fmt.Println((production / 3600) * timeDiff.Seconds())
-	return (production / 3600) * timeDiff.Seconds()
+	return float64(building.GetProduction(level)) / 3600 * timeDiff.Seconds()
 }

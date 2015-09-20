@@ -25,6 +25,7 @@ const (
 	SiliconMineCategoryKey string = "Silicon"
 	UraniumMineCategoryKey string = "Uranium"
 	PowerPlantCategoryKey  string = "Energy"
+	PrecalculateLevels     int64  = 50
 )
 
 func NewBaseDataStore(buildings, research string) *BaseDataStore {
@@ -40,6 +41,7 @@ func NewBaseDataStore(buildings, research string) *BaseDataStore {
 	}
 
 	store.ExtractMineKeys()
+	store.PrecalculateCostsAndProduction()
 
 	return store
 }
@@ -59,4 +61,11 @@ func (b *BaseDataStore) ExtractMineKeys() {
 	SiliconMineKey = b.FindMineByType(SiliconMineCategoryKey)
 	UraniumMineKey = b.FindMineByType(UraniumMineCategoryKey)
 	PowerPlantKey = b.FindMineByType(PowerPlantCategoryKey)
+}
+
+func (b *BaseDataStore) PrecalculateCostsAndProduction() {
+	for _, building := range b.Buildings {
+		building.PrecalculateCostTable(PrecalculateLevels)
+		building.PrecalculateProductionTable(PrecalculateLevels)
+	}
 }
