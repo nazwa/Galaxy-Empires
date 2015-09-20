@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 type PlanetHandler struct {
@@ -29,7 +30,7 @@ func NewPlanetHandler(r *gin.RouterGroup) *PlanetHandler {
 func (p *PlanetHandler) Get(c *gin.Context) {
 	planet := c.MustGet(PlanetObjectKey).(*PlanetStruct)
 
-	planet.RecalculateResources(BaseData)
+	planet.UpdatePlanet(BaseData, time.Now())
 	c.JSON(http.StatusOK, planet.ToPublic(true))
 }
 
@@ -42,7 +43,13 @@ func (p *PlanetHandler) Rename(c *gin.Context) {
 }
 
 func (p *PlanetHandler) BuildBuilding(c *gin.Context) {
-	//planet := c.MustGet(PlanetObjectKey).(*PlanetStruct)
-	//building_id := c.Params.ByName("type")
+	planet := c.MustGet(PlanetObjectKey).(*PlanetStruct)
+	building_id := c.Params.ByName("type")
+
+	if err := planet.BuildBuilding(BaseData, building_id); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err).SetType(gin.ErrorTypePublic)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{})
 
 }

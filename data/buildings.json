@@ -5,14 +5,15 @@
 		"Category": "Mine",
 		"Produces": "Metal",
 		"BaseCost": {
-			"Metal": 100,
-			"Silicon": 100,
+			"Metal": 30,
+			"Silicon": 20,
 			"Uranium": 0,
-			"Energy": 100
+			"Energy": 10,
+			"Time": 30
 		},
 		"CostEquations": {
 			"a": 1,
-			"b": 1.1,
+			"b": 1.5,
 			"c": 1
 		},
 		"BaseProduction": 100,
@@ -31,11 +32,12 @@
 			"Metal": 100,
 			"Silicon": 100,
 			"Uranium": 0,
-			"Energy": 100
+			"Energy": 100,
+			"Time": 40
 		},
 		"CostEquations": {
 			"a": 1,
-			"b": 1,
+			"b": 1.5,
 			"c": 1
 		},
 		"BaseProduction": 100,
@@ -54,11 +56,12 @@
 			"Metal": 100,
 			"Silicon": 100,
 			"Uranium": 0,
-			"Energy": 100
+			"Energy": 100,
+			"Time": 60
 		},
 		"CostEquations": {
 			"a": 1,
-			"b": 1,
+			"b": 1.5,
 			"c": 1
 		},
 		"BaseProduction": 100,
@@ -77,11 +80,12 @@
 			"Metal": 100,
 			"Silicon": 100,
 			"Uranium": 0,
-			"Energy": 100
+			"Energy": 100,
+			"Time": 30
 		},
 		"CostEquations": {
 			"a": 1,
-			"b": 1,
+			"b": 1.5,
 			"c": 1
 		},
 		"BaseProduction": 100,
@@ -99,7 +103,13 @@
 			"Metal": 100,
 			"Silicon": 100,
 			"Uranium": 0,
-			"Energy": 100
+			"Energy": 100,
+			"Time": 50
+		},
+		"CostEquations": {
+			"a": 1,
+			"b": 1.5,
+			"c": 1
 		},
 		"Requirements": {
 			"Research": [

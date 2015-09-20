@@ -62,11 +62,19 @@ func GenerateNewPlanet(universe *UniverseStruct, baseData *BaseDataStore) (*Plan
 	return planet, nil
 }
 
-func (p *PlanetStruct) RecalculateResources(baseData *BaseDataStore) {
+func (p *PlanetStruct) UpdatePlanet(baseData *BaseDataStore, now time.Time) {
+	// Make sure no mines have been built while we were away
+	// This will recalculate resources up to the time of the construction end
+	p.UpdateConstruction(baseData, now)
+
+	// Recalculate resources for real now
+	p.RecalculateResources(baseData, now)
+}
+
+func (p *PlanetStruct) RecalculateResources(baseData *BaseDataStore, now time.Time) {
 	p.ResourcesMutex.Lock()
 	defer p.ResourcesMutex.Unlock()
 
-	now := time.Now()
 	timeDiff := now.Sub(p.ResourcesUpdateTime)
 	// We dont want to udpate resources more often than this time
 	if timeDiff < MinimumResourceTime {
@@ -103,6 +111,29 @@ func (p *PlanetStruct) SubtractResources(resources ResourcesStruct) error {
 	p.Resources.SubtractBasic(resources)
 
 	return nil
+}
+
+// Checks if there are any buildings that have finished
+// Recalculates resources before completition
+// @todo: FIRE EVENT TO NOTIFY BUILDING COMPLETITION
+func (p *PlanetStruct) UpdateConstruction(baseData *BaseDataStore, now time.Time) {
+	p.BuildingInProgressMutex.Lock()
+	defer p.BuildingInProgressMutex.Unlock()
+
+	if p.BuildingInProgress == nil {
+		return
+	}
+
+	// Triggers if building end time has already passed
+	if p.BuildingInProgress.EndTime.Sub(now) < 0 {
+		// Recalculate the resources with old levels
+		p.RecalculateResources(baseData, p.BuildingInProgress.EndTime)
+
+		// Finish the actual build
+		p.Buildings[p.BuildingInProgress.Building.ID]++
+		p.BuildingInProgress = nil
+		p.UpdateHourlyProduction(baseData)
+	}
 }
 
 func (p *PlanetStruct) BuildBuilding(baseData *BaseDataStore, id string) error {
