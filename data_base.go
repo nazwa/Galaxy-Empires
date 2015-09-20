@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"strings"
 )
 
@@ -9,24 +8,6 @@ type BaseDataStore struct {
 	Buildings map[string]*BuildingStruct
 	Research  map[string]*ResearchStruct
 }
-
-var (
-	MetalMineKey   string
-	SiliconMineKey string
-	UraniumMineKey string
-	PowerPlantKey  string
-
-	ErrorMineNotFound error = errors.New("Not all mines are present")
-)
-
-const (
-	MineCategoryString     string = "Mine"
-	MetalMineCategoryKey   string = "Metal"
-	SiliconMineCategoryKey string = "Silicon"
-	UraniumMineCategoryKey string = "Uranium"
-	PowerPlantCategoryKey  string = "Energy"
-	PrecalculateLevels     int64  = 50
-)
 
 func NewBaseDataStore(buildings, research string) *BaseDataStore {
 	store := &BaseDataStore{}

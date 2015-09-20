@@ -5,19 +5,21 @@ import (
 )
 
 type BuildingStruct struct {
-	ID                  string
-	Name                string
-	Category            string
-	Produces            string
-	Description         string
-	BaseCost            ResourcesStruct
-	BaseProduction      float64
-	Requirements        RequirementsStruct
+	ID             string
+	Name           string
+	Category       string
+	Produces       string
+	Description    string
+	BaseCost       ResourcesStruct
+	BaseProduction float64
+	Requirements   RequirementsStruct
+
 	CostEquations       EquationStruct
+	BuildEqations       EquationStruct
 	ProductionEquations EquationStruct
 
-	costTable       []ResourcesStruct `json:"-"`
-	productionTable []int64           `json:"-"`
+	costTable       []ResourcesStruct
+	productionTable []int64
 }
 
 func (b *BuildingStruct) PrecalculateProductionTable(limit int64) {

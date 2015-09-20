@@ -25,7 +25,7 @@ const (
 func Authentication(encryptionKey []byte) gin.HandlerFunc {
 
 	// This is a big problem that happens only on startup, let's panic
-	if len(encryptionKey) == AuthMinEncryptionKeyLength {
+	if len(encryptionKey) < AuthMinEncryptionKeyLength {
 		panic(ErrorInvalidEncryptionKey)
 	}
 

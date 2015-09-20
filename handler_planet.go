@@ -1,23 +1,23 @@
 package main
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
-)
-
-var (
-	ErrorInvalidPlanetID error = errors.New("Invalid planet ID")
 )
 
 type PlanetHandler struct {
 	RouterGroup *gin.RouterGroup
 }
 
+type PlanetRenameForm struct {
+	Name string `form:"name" binding:"required,min=1,max=60"`
+}
+
 func (p *PlanetHandler) Routes() {
 	p.RouterGroup.Use(PlayerMiddleware(PlayerData))
-	p.RouterGroup.GET("/:id", p.Get)
+	p.RouterGroup.GET("/:id", PlanetMiddleware(), p.Get)
+	p.RouterGroup.POST("/:id/rename", PlanetMiddleware(), gin.Bind(PlanetRenameForm{}), p.Rename)
+	p.RouterGroup.POST("/:id/building/build/:type", PlanetMiddleware(), p.BuildBuilding)
 }
 
 func NewPlanetHandler(r *gin.RouterGroup) *PlanetHandler {
@@ -27,20 +27,22 @@ func NewPlanetHandler(r *gin.RouterGroup) *PlanetHandler {
 }
 
 func (p *PlanetHandler) Get(c *gin.Context) {
-	player := c.MustGet(PlayerObjectKey).(*PlayerStruct)
-
-	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err).SetType(gin.ErrorTypePublic)
-		return
-	}
-
-	planet := player.GetPlanet(id)
-	if planet == nil {
-		c.AbortWithError(http.StatusBadRequest, ErrorInvalidPlanetID).SetType(gin.ErrorTypePublic)
-		return
-	}
+	planet := c.MustGet(PlanetObjectKey).(*PlanetStruct)
 
 	planet.RecalculateResources(BaseData)
-	c.JSON(http.StatusOK, planet)
+	c.JSON(http.StatusOK, planet.ToPublic(true))
+}
+
+func (p *PlanetHandler) Rename(c *gin.Context) {
+	planet := c.MustGet(PlanetObjectKey).(*PlanetStruct)
+	rename := c.MustGet(gin.BindKey).(*PlanetRenameForm)
+	planet.Name = rename.Name
+
+	c.JSON(http.StatusOK, planet.ToPublic(true))
+}
+
+func (p *PlanetHandler) BuildBuilding(c *gin.Context) {
+	//planet := c.MustGet(PlanetObjectKey).(*PlanetStruct)
+	//building_id := c.Params.ByName("type")
+
 }

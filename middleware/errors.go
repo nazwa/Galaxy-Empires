@@ -30,21 +30,22 @@ func ValidationErrorToText(e *validator.FieldError) string {
 	return fmt.Sprintf("%s is not valid", e.Field)
 }
 
-// This method collects all the errors and submits them to Rollbar
+// This method collects all errors and submits them to Rollbar
 func Errors(env, token string, logger service.Logger) gin.HandlerFunc {
 	rollbar.Environment = env
 	rollbar.Token = token
 
 	return func(c *gin.Context) {
-
 		c.Next()
+		// Only run if there are some errors to handle
 		if len(c.Errors) > 0 {
 			for _, e := range c.Errors {
+				// Find out what type of error it is
 				switch e.Type {
-				case gin.ErrorTypePrivate:
-					rollbar.RequestError(rollbar.ERR, c.Request, e.Err)
-					if logger != nil {
-						logger.Error(e.Err)
+				case gin.ErrorTypePublic:
+					// Only output public errors if nothing has been written yet
+					if !c.Writer.Written() {
+						c.JSON(c.Writer.Status(), gin.H{"Error": e.Error()})
 					}
 				case gin.ErrorTypeBind:
 					errs := e.Err.(*validator.StructErrors)
@@ -61,14 +62,15 @@ func Errors(env, token string, logger service.Logger) gin.HandlerFunc {
 					c.JSON(status, gin.H{"Errors": list})
 
 				default:
-					// If nothign has been written yet, output the detected public error
-					if !c.Writer.Written() {
-						c.JSON(c.Writer.Status(), gin.H{"Error": e.Error()})
+					// Log all other errors
+					rollbar.RequestError(rollbar.ERR, c.Request, e.Err)
+					if logger != nil {
+						logger.Error(e.Err)
 					}
 				}
 
 			}
-			// If there was no public error, display default 500 message
+			// If there was no public or bind error, display default 500 message
 			if !c.Writer.Written() {
 				c.JSON(http.StatusInternalServerError, gin.H{"Error": ErrorInternalError.Error()})
 			}

@@ -1,14 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 	"time"
-)
-
-const (
-	DefaultPlanetName   string        = "Planeta matka"
-	MinimumResourceTime time.Duration = 1 * time.Second
 )
 
 type CoordinatesStruct struct {
@@ -19,9 +13,10 @@ type CoordinatesStruct struct {
 
 type PlanetStruct struct {
 	Position CoordinatesStruct
-	Owner    *PlayerStruct `json:"-"`
+	Owner    *PlayerStruct
 
 	Resources           ResourcesStruct
+	ResourcesHourly     ResourcesStruct
 	ResourcesUpdateTime time.Time
 	ResourcesMutex      sync.Mutex
 
@@ -29,6 +24,9 @@ type PlanetStruct struct {
 
 	Research  map[string]int64
 	Buildings map[string]int64
+
+	BuildingInProgress      *BuildingProgressStruct
+	BuildingInProgressMutex sync.Mutex
 }
 
 func GenerateNewPlanet(universe *UniverseStruct, baseData *BaseDataStore) (*PlanetStruct, error) {
@@ -43,8 +41,8 @@ func GenerateNewPlanet(universe *UniverseStruct, baseData *BaseDataStore) (*Plan
 	planet.Buildings = make(map[string]int64)
 
 	// Set basic mine levels
-	planet.Buildings[MetalMineKey] = 25
-	planet.Buildings[SiliconMineKey] = 0
+	planet.Buildings[MetalMineKey] = 2
+	planet.Buildings[SiliconMineKey] = 1
 	planet.Buildings[UraniumMineKey] = 0
 	planet.Buildings[PowerPlantKey] = 0
 
@@ -57,6 +55,7 @@ func GenerateNewPlanet(universe *UniverseStruct, baseData *BaseDataStore) (*Plan
 		Energy:  0,
 	}
 	planet.ResourcesUpdateTime = time.Now()
+	planet.UpdateHourlyProduction(baseData)
 
 	universe.AddPlanet(position, planet)
 
@@ -74,13 +73,73 @@ func (p *PlanetStruct) RecalculateResources(baseData *BaseDataStore) {
 		return
 	}
 
-	p.Resources.Metal += p.CalculateProduction(baseData.Buildings[MetalMineKey], p.Buildings[MetalMineKey], timeDiff)
-	p.Resources.Silicon += p.CalculateProduction(baseData.Buildings[SiliconMineKey], p.Buildings[SiliconMineKey], timeDiff)
-	p.Resources.Uranium += p.CalculateProduction(baseData.Buildings[UraniumMineKey], p.Buildings[UraniumMineKey], timeDiff)
+	p.Resources.Metal += p.CalculateProduction(p.ResourcesHourly.Metal, timeDiff)
+	p.Resources.Silicon += p.CalculateProduction(p.ResourcesHourly.Silicon, timeDiff)
+	p.Resources.Uranium += p.CalculateProduction(p.ResourcesHourly.Uranium, timeDiff)
 
 	p.ResourcesUpdateTime = now
 }
 
-func (p *PlanetStruct) CalculateProduction(building *BuildingStruct, level int64, timeDiff time.Duration) float64 {
-	return float64(building.GetProduction(level)) / 3600 * timeDiff.Seconds()
+func (p *PlanetStruct) CalculateProduction(production float64, timeDiff time.Duration) float64 {
+	return production / 3600 * timeDiff.Seconds()
+}
+
+func (p *PlanetStruct) UpdateHourlyProduction(baseData *BaseDataStore) {
+	p.ResourcesHourly = ResourcesStruct{
+		Metal:   float64(baseData.Buildings[MetalMineKey].GetProduction(p.Buildings[MetalMineKey])),
+		Silicon: float64(baseData.Buildings[SiliconMineKey].GetProduction(p.Buildings[SiliconMineKey])),
+		Uranium: float64(baseData.Buildings[UraniumMineKey].GetProduction(p.Buildings[UraniumMineKey])),
+	}
+}
+
+func (p *PlanetStruct) SubtractResources(resources ResourcesStruct) error {
+	p.ResourcesMutex.Lock()
+	defer p.ResourcesMutex.Unlock()
+
+	if !p.Resources.HasEnoughBasic(resources) {
+		return ErrorInsufficientResources
+	}
+
+	p.Resources.SubtractBasic(resources)
+
+	return nil
+}
+
+func (p *PlanetStruct) BuildBuilding(baseData *BaseDataStore, id string) error {
+	p.BuildingInProgressMutex.Lock()
+	defer p.BuildingInProgressMutex.Unlock()
+
+	if p.BuildingInProgress != nil {
+		return ErrorBuildingInProgress
+	}
+
+	var building *BuildingStruct
+	var toLevel int64
+	var ok bool
+
+	if building, ok = baseData.Buildings[id]; !ok {
+		return ErrorInvalidBuildingID
+	}
+
+	if toLevel, ok = p.Buildings[id]; !ok {
+		toLevel = 1
+	} else {
+		toLevel++
+	}
+
+	cost := building.GetCost(toLevel)
+
+	if err := p.SubtractResources(cost); err != nil {
+		return err
+	}
+
+	p.BuildingInProgress = &BuildingProgressStruct{
+		Building:  building,
+		Cost:      cost,
+		StartTime: time.Now(),
+		EndTime:   time.Now().Add(cost.Time),
+	}
+
+	return nil
+
 }

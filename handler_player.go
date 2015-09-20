@@ -24,7 +24,7 @@ func NewPlayerHandler(r *gin.RouterGroup) *PlayerHandler {
 func (p *PlayerHandler) Get(c *gin.Context) {
 	player := c.MustGet(PlayerObjectKey).(*PlayerStruct)
 
-	c.JSON(http.StatusOK, player)
+	c.JSON(http.StatusOK, player.ToPublic(true))
 }
 
 func (p *PlayerHandler) GetData(c *gin.Context) {

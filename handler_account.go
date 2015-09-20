@@ -1,14 +1,9 @@
 package main
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
-)
-
-var (
-	ErrorInvalidCredentials error = errors.New("Invalid credentials")
 )
 
 type AccountHandler struct {
@@ -25,7 +20,6 @@ func NewAccountHandler(r *gin.RouterGroup) *AccountHandler {
 	u.Routes()
 	return u
 }
-
 
 func (u *AccountHandler) LoginHandler(c *gin.Context) {
 	var player *PlayerStruct
@@ -53,12 +47,18 @@ func (u *AccountHandler) RegisterHandler(c *gin.Context) {
 	player := c.MustGet(gin.BindKey).(*PlayerStruct)
 
 	if err := player.HashPassword(); err != nil {
-		c.AbortWithError(http.StatusUnauthorized, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
+
+	// Make sure this email hasn't been used yet
+	if PlayerData.SafeGetByEmail(player.Email) != nil {
+		c.AbortWithError(http.StatusBadRequest, ErrorEmailInUse).SetType(gin.ErrorTypePublic)
+		return
+	}
+
 	PlayerData.SafeAdd(player)
-	
-	
+
 	// We have a player, let's make him a planet!
 	planet, err := GenerateNewPlanet(Universe, BaseData)
 	if err != nil {
@@ -66,10 +66,9 @@ func (u *AccountHandler) RegisterHandler(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	
+
 	player.AddPlanet(planet)
-	
-	
+
 	u.sendLoginToken(c, player)
 }
 

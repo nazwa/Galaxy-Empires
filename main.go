@@ -2,6 +2,7 @@ package main
 
 import (
 	"bitbucket.org/nazwa/galaxy-empires/middleware"
+	debug "bitbucket.org/tidepayments/gohelpers/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/kardianos/osext"
 	"log"
@@ -27,6 +28,8 @@ func main() {
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 	r.Use(middleware.Errors("", "", nil))
+
+	debug.AssignDebugHandlers(r.Group("/debug"))
 
 	NewAccountHandler(r.Group("/account"))
 	NewPlayerHandler(r.Group("/player", middleware.Authentication(JWTKey)))
