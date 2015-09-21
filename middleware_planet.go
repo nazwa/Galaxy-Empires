@@ -24,7 +24,5 @@ func PlanetMiddleware() gin.HandlerFunc {
 			return
 		}
 		c.Set(PlanetObjectKey, planet)
-
 	}
-
 }

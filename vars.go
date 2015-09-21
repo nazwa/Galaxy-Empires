@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"github.com/gin-gonic/gin"
 	"time"
 )
 
@@ -40,6 +41,12 @@ var (
 )
 
 // <----
+// Default success response lol
+var (
+	DefaultSuccessResponse gin.H = gin.H{"Success": true}
+)
+
+// <----
 // ERRORS
 // ---->
 var (
@@ -53,4 +60,5 @@ var (
 	ErrorMineNotFound          error = errors.New("Not all mines are present")
 	ErrorInsufficientResources error = errors.New("Insufficient resources")
 	ErrorBuildingInProgress    error = errors.New("Another building in progress")
+	ErrorResearchInProgress    error = errors.New("Another research in progress")
 )

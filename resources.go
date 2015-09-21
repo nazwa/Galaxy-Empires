@@ -30,6 +30,12 @@ func (r *ResourcesStruct) SubtractBasic(other ResourcesStruct) {
 	r.Uranium -= other.Uranium
 }
 
+func (r *ResourcesStruct) AddBasic(other ResourcesStruct) {
+	r.Metal += other.Metal
+	r.Silicon += other.Silicon
+	r.Uranium += other.Uranium
+}
+
 func (r *ResourcesStruct) HasEnoughFull(other ResourcesStruct) bool {
 	return r.Metal >= other.Metal &&
 		r.Silicon >= other.Silicon &&
@@ -37,6 +43,15 @@ func (r *ResourcesStruct) HasEnoughFull(other ResourcesStruct) bool {
 		r.Energy >= other.Energy &&
 		r.Time >= other.Time
 }
+
+func (r *ResourcesStruct) AddFull(other ResourcesStruct) {
+	r.Metal += other.Metal
+	r.Silicon += other.Silicon
+	r.Uranium += other.Uranium
+	r.Energy += other.Energy
+	r.Time += other.Time
+}
+
 func (r *ResourcesStruct) SubtractFull(other ResourcesStruct) {
 	r.Metal -= other.Metal
 	r.Silicon -= other.Silicon

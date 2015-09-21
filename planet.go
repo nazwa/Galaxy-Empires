@@ -27,6 +27,9 @@ type PlanetStruct struct {
 
 	BuildingInProgress      *BuildingProgressStruct
 	BuildingInProgressMutex sync.Mutex
+
+	ResearchInProgress      *ResearchProgressStruct
+	ResearchInProgressMutex sync.Mutex
 }
 
 func GenerateNewPlanet(universe *UniverseStruct, baseData *BaseDataStore) (*PlanetStruct, error) {
@@ -107,10 +110,17 @@ func (p *PlanetStruct) SubtractResources(resources ResourcesStruct) error {
 	if !p.Resources.HasEnoughBasic(resources) {
 		return ErrorInsufficientResources
 	}
-
 	p.Resources.SubtractBasic(resources)
 
 	return nil
+}
+
+//Adding should always be successful, so no need for errors! yay
+func (p *PlanetStruct) AddResources(resources ResourcesStruct) {
+	p.ResourcesMutex.Lock()
+	defer p.ResourcesMutex.Unlock()
+
+	p.Resources.AddBasic(resources)
 }
 
 // Checks if there are any buildings that have finished
@@ -172,5 +182,70 @@ func (p *PlanetStruct) BuildBuilding(baseData *BaseDataStore, id string) error {
 	}
 
 	return nil
+}
 
+func (p *PlanetStruct) CancelBuilding() {
+	p.BuildingInProgressMutex.Lock()
+	defer p.BuildingInProgressMutex.Unlock()
+
+	if p.BuildingInProgress == nil {
+		return
+	}
+
+	p.AddResources(p.BuildingInProgress.Cost)
+	p.BuildingInProgress = nil
+
+	return
+}
+
+func (p *PlanetStruct) BuildResearch(baseData *BaseDataStore, id string) error {
+	p.ResearchInProgressMutex.Lock()
+	defer p.ResearchInProgressMutex.Unlock()
+
+	if p.ResearchInProgress != nil {
+		return ErrorResearchInProgress
+	}
+
+	var research *ResearchStruct
+	var toLevel int64
+	var ok bool
+
+	if building, ok = baseData.Buildings[id]; !ok {
+		return ErrorInvalidBuildingID
+	}
+
+	if toLevel, ok = p.Buildings[id]; !ok {
+		toLevel = 1
+	} else {
+		toLevel++
+	}
+
+	cost := building.GetCost(toLevel)
+
+	if err := p.SubtractResources(cost); err != nil {
+		return err
+	}
+
+	p.BuildingInProgress = &BuildingProgressStruct{
+		Building:  building,
+		Cost:      cost,
+		StartTime: time.Now(),
+		EndTime:   time.Now().Add(cost.Time),
+	}
+
+	return nil
+}
+
+func (p *PlanetStruct) CancelResearch() {
+	p.BuildingInProgressMutex.Lock()
+	defer p.BuildingInProgressMutex.Unlock()
+
+	if p.BuildingInProgress == nil {
+		return
+	}
+
+	p.AddResources(p.BuildingInProgress.Cost)
+	p.BuildingInProgress = nil
+
+	return
 }

@@ -19,6 +19,7 @@ func (p *PlanetHandler) Routes() {
 	p.RouterGroup.GET("/:id", PlanetMiddleware(), p.Get)
 	p.RouterGroup.POST("/:id/rename", PlanetMiddleware(), gin.Bind(PlanetRenameForm{}), p.Rename)
 	p.RouterGroup.POST("/:id/building/build/:type", PlanetMiddleware(), p.BuildBuilding)
+	p.RouterGroup.POST("/:id/building/cancel", PlanetMiddleware(), p.CancelBuilding)
 }
 
 func NewPlanetHandler(r *gin.RouterGroup) *PlanetHandler {
@@ -50,6 +51,12 @@ func (p *PlanetHandler) BuildBuilding(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err).SetType(gin.ErrorTypePublic)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, DefaultSuccessResponse)
+}
 
+func (p *PlanetHandler) CancelBuilding(c *gin.Context) {
+	planet := c.MustGet(PlanetObjectKey).(*PlanetStruct)
+	planet.CancelBuilding()
+
+	c.JSON(http.StatusOK, DefaultSuccessResponse)
 }

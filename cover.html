@@ -413,39 +413,46 @@ func (p *PlanetHandler) Routes() <span class="cov0" title="0">{
         p.RouterGroup.GET("/:id", PlanetMiddleware(), p.Get)
         p.RouterGroup.POST("/:id/rename", PlanetMiddleware(), gin.Bind(PlanetRenameForm{}), p.Rename)
         p.RouterGroup.POST("/:id/building/build/:type", PlanetMiddleware(), p.BuildBuilding)
-}</span>
+        </span>p.RouterGroup.POST("/:id/building/cancel", PlanetMiddleware(), p.CancelBuilding)
+}
 
-func NewPlanetHandler(r *gin.RouterGroup) *PlanetHandler <span class="cov0" title="0">{
+func NewPlanetHandler(r *gin.RouterGroup) *PlanetHandler {
         p := &amp;PlanetHandler{RouterGroup: r}
         p.Routes()
-        return p
-}</span>
+        </span>return p
+}
 
-func (p *PlanetHandler) Get(c *gin.Context) <span class="cov0" title="0">{
+func (p *PlanetHandler) Get(c *gin.Context) {
         planet := c.MustGet(PlanetObjectKey).(*PlanetStruct)
 
         planet.UpdatePlanet(BaseData, time.Now())
-        c.JSON(http.StatusOK, planet.ToPublic(true))
-}</span>
+        </span>c.JSON(http.StatusOK, planet.ToPublic(true))
+}
 
-func (p *PlanetHandler) Rename(c *gin.Context) <span class="cov0" title="0">{
+func (p *PlanetHandler) Rename(c *gin.Context) {
         planet := c.MustGet(PlanetObjectKey).(*PlanetStruct)
         rename := c.MustGet(gin.BindKey).(*PlanetRenameForm)
         planet.Name = rename.Name
 
-        c.JSON(http.StatusOK, planet.ToPublic(true))
-}</span>
+        </span>c.JSON(http.StatusOK, planet.ToPublic(true))
+}
 
-func (p *PlanetHandler) BuildBuilding(c *gin.Context) <span class="cov0" title="0">{
+func (p *PlanetHandler) BuildBuilding(c *gin.Context) {
         planet := c.MustGet(PlanetObjectKey).(*PlanetStruct)
         building_id := c.Params.ByName("type")
 
-        if err := planet.BuildBuilding(BaseData, building_id); err != nil </span><span class="cov0" title="0">{
+</span>        if err := planet.BuildBuilding(BaseData, building_id); err != nil {
                 c.AbortWithError(http.StatusBadRequest, err).SetType(gin.ErrorTypePublic)
-                return
-        }</span>
-        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{})</span>
+                </span>return
+        <span class="cov0" title="0">}
+</span>        c.JSON(http.StatusOK, DefaultSuccessResponse)
+}
 
+func (p *PlanetHandler) CancelBuilding(c *gin.Context) {
+        planet := c.MustGet(PlanetObjectKey).(*PlanetStruct)
+        planet.CancelBuilding()
+
+        c.JSON(http.StatusOK, DefaultSuccessResponse)
 }
 </pre>
 		
@@ -556,9 +563,7 @@ func PlanetMiddleware() gin.HandlerFunc <span class="cov8" title="1">{
                         return
                 }</span>
                 <span class="cov8" title="1">c.Set(PlanetObjectKey, planet)</span>
-
         }
-
 }
 </pre>
 		
@@ -620,15 +625,18 @@ type PlanetStruct struct {
 
         BuildingInProgress      *BuildingProgressStruct
         BuildingInProgressMutex sync.Mutex
+
+        ResearchInProgress      *ResearchProgressStruct
+        ResearchInProgressMutex sync.Mutex
 }
 
-func GenerateNewPlanet(universe *UniverseStruct, baseData *BaseDataStore) (*PlanetStruct, error) <span class="cov0" title="0">{
-        position, err := universe.GetNewCoordinates()
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
+</span>func GenerateNewPlanet(universe *UniverseStruct, baseData *BaseDataStore) (*PlanetStruct, error) {
+        p</span>osition, err := universe.GetNewCoordinates()
+        if err != nil {
+        <span class="cov0" title="0">        return nil, err
+        }
 
-        <span class="cov0" title="0">planet := &amp;PlanetStruct{}
+        planet := &amp;PlanetStruct{}
         planet.Position = *position
         planet.Name = DefaultPlanetName
         planet.Buildings = make(map[string]int64)
@@ -650,122 +658,143 @@ func GenerateNewPlanet(universe *UniverseStruct, baseData *BaseDataStore) (*Plan
         planet.ResourcesUpdateTime = time.Now()
         planet.UpdateHourlyProduction(baseData)
 
-        universe.AddPlanet(position, planet)
+</span>        universe.AddPlanet(position, planet)
 
-        return planet, nil</span>
+        return planet, nil
 }
 
-func (p *PlanetStruct) UpdatePlanet(baseData *BaseDataStore, now time.Time) <span class="cov0" title="0">{
+func (p *PlanetStruct) UpdatePlanet(baseData *BaseDataStore, now time.Time) {
         // Make sure no mines have been built while we were away
         // This will recalculate resources up to the time of the construction end
         p.UpdateConstruction(baseData, now)
 
-        // Recalculate resources for real now
+</span>        // Recalculate resources for real now
         p.RecalculateResources(baseData, now)
-}</span>
+}
 
-func (p *PlanetStruct) RecalculateResources(baseData *BaseDataStore, now time.Time) <span class="cov0" title="0">{
+func (p *PlanetStruct) RecalculateResources(baseData *BaseDataStore, now time.Time) {
         p.ResourcesMutex.Lock()
         defer p.ResourcesMutex.Unlock()
 
-        timeDiff := now.Sub(p.ResourcesUpdateTime)
-        // We dont want to udpate resources more often than this time
-        if timeDiff &lt; MinimumResourceTime </span><span class="cov0" title="0">{
-                return
-        }</span>
+</span>        timeDiff := now.Sub(p.ResourcesUpdateTime)
+        /</span>/ We dont want to udpate resources more often than this time
+        if timeDiff &lt; MinimumResourceTime {
+        <span class="cov0" title="0">        return
+        }
 
-        <span class="cov0" title="0">p.Resources.Metal += p.CalculateProduction(p.ResourcesHourly.Metal, timeDiff)
-        p.Resources.Silicon += p.CalculateProduction(p.ResourcesHourly.Silicon, timeDiff)
+        p.Resources.Metal += p.CalculateProduction(p.ResourcesHourly.Metal, timeDiff)
+        p.Resources.Silicon += p.Ca</span>lculateProduction(p.ResourcesHourly.Silicon, timeDiff)
         p.Resources.Uranium += p.CalculateProduction(p.ResourcesHourly.Uranium, timeDiff)
 
-        p.ResourcesUpdateTime = now</span>
+        p.ResourcesUpdateTime = now
 }
 
-func (p *PlanetStruct) CalculateProduction(production float64, timeDiff time.Duration) float64 <span class="cov0" title="0">{
+</span>func (p *PlanetStruct) CalculateProduction(production float64, timeDiff time.Duration) float64 {
         return production / 3600 * timeDiff.Seconds()
-}</span>
+}
 
-func (p *PlanetStruct) UpdateHourlyProduction(baseData *BaseDataStore) <span class="cov0" title="0">{
+func (p *PlanetStruct) UpdateHourlyProduction(baseData *BaseDataStore) {
         p.ResourcesHourly = ResourcesStruct{
                 Metal:   float64(baseData.Buildings[MetalMineKey].GetProduction(p.Buildings[MetalMineKey])),
-                Silicon: float64(baseData.Buildings[SiliconMineKey].GetProduction(p.Buildings[SiliconMineKey])),
+        </span>        Silicon: float64(baseData.Buildings[SiliconMineKey].GetProduction(p.Buildings[SiliconMineKey])),
                 Uranium: float64(baseData.Buildings[UraniumMineKey].GetProduction(p.Buildings[UraniumMineKey])),
         }
-}</span>
+}
 
-func (p *PlanetStruct) SubtractResources(resources ResourcesStruct) error <span class="cov0" title="0">{
+func (p *PlanetStruct) SubtractResources(resources ResourcesStruct) error {
+        p.ResourcesMutex.Lock()
+</span>        defer p.ResourcesMutex.Unlock()
+
+</span>        if !p.Resources.HasEnoughBasic(resources) {
+        <span class="cov0" title="0">        return ErrorInsufficientResources
+        }
+        p.Resource</span>s.SubtractBasic(resources)
+
+        return nil
+}
+
+//Adding should always be successful, so no need for errors! yay
+func (p *PlanetStruct) AddResources(resources ResourcesStruct) {
         p.ResourcesMutex.Lock()
         defer p.ResourcesMutex.Unlock()
 
-        if !p.Resources.HasEnoughBasic(resources) </span><span class="cov0" title="0">{
-                return ErrorInsufficientResources
-        }</span>
-
-        <span class="cov0" title="0">p.Resources.SubtractBasic(resources)
-
-        return nil</span>
+        p.Resources.AddBasic(resources)</span><span class="cov0" title="0">
 }
 
-// Checks if there are any buildings that have finished
+</span>// Checks if there are any buildings that have finished
 // Recalculates resources before completition
-// @todo: FIRE EVENT TO NOTIFY BUILDING COMPLETITION
-func (p *PlanetStruct) UpdateConstruction(baseData *BaseDataStore, now time.Time) <span class="cov0" title="0">{
+/<span class="cov0" title="0">/ @todo: FIRE EVENT TO NOTIFY BUILDING COMPLE</span><span class="cov0" title="0">TITION
+func (p *PlanetStruct) UpdateConstruction(baseData *BaseDataStore, now time.Time) {
         p.BuildingInProgressMutex.Lock()
         defer p.BuildingInProgressMutex.Unlock()
 
-        if p.BuildingInProgress == nil </span><span class="cov0" title="0">{
+        if p.BuildingInProgress == nil {
                 return
-        }</span>
+        }
 
-        // Triggers if building end time has already passed
-        <span class="cov0" title="0">if p.BuildingInProgress.EndTime.Sub(now) &lt; 0 </span><span class="cov0" title="0">{
+</span>        // Triggers if building end time has already passed
+        if p.BuildingInProgress.EndTime.Sub(now) &lt; 0 {
                 // Recalculate the resources with old levels
                 p.RecalculateResources(baseData, p.BuildingInProgress.EndTime)
 
                 // Finish the actual build
-                p.Buildings[p.BuildingInProgress.Building.ID]++
+                p.Buildings[p.BuildingInProgre</span><span class="cov0" title="0">ss.Building.ID]++
                 p.BuildingInProgress = nil
-                p.UpdateHourlyProduction(baseData)
-        }</span>
-}
+                </span>p.UpdateHourlyProduction(baseData)
+        }
+}<span class="cov0" title="0">
 
-func (p *PlanetStruct) BuildBuilding(baseData *BaseDataStore, id string) error <span class="cov0" title="0">{
+func (p *PlanetStruct) BuildBuilding(baseData *BaseDataStore, id string) error {
         p.BuildingInProgressMutex.Lock()
         defer p.BuildingInProgressMutex.Unlock()
-
-        if p.BuildingInProgress != nil </span><span class="cov0" title="0">{
+</span>
+        i</span>f p.BuildingInProgress != nil {
                 return ErrorBuildingInProgress
-        }</span>
-
-        <span class="cov0" title="0">var building *BuildingStruct
+        <span class="cov0" title="0">}
+</span>
+        v</span><span class="cov0" title="0">ar building *BuildingStruct
         var toLevel int64
-        var ok bool
+        v</span>ar ok bool
 
-        if building, ok = baseData.Buildings[id]; !ok </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if building, ok = baseData.Buildings[id]; !ok {
                 return ErrorInvalidBuildingID
-        }</span>
-
-        <span class="cov0" title="0">if toLevel, ok = p.Buildings[id]; !ok </span><span class="cov0" title="0">{
+        }
+</span>
+        i</span>f toLevel, ok = p.Buildings[id]; !ok {
                 toLevel = 1
-        }</span><span class="cov0" title="0"> else {
+        <span class="cov0" title="0">} else {
                 toLevel++
-        }</span>
+        }
 
-        <span class="cov0" title="0">cost := building.GetCost(toLevel)
+        cost := building.GetCost(toLevel)
 
-        if err := p.SubtractResources(cost); err != nil </span><span class="cov0" title="0">{
-                return err
-        }</span>
+        if err := p.SubtractResources(cost); err != nil {
+                return er</span>r
+        }
 
-        <span class="cov0" title="0">p.BuildingInProgress = &amp;BuildingProgressStruct{
+        p.BuildingInProgress = &amp;BuildingProgressStruct{
                 Building:  building,
                 Cost:      cost,
                 StartTime: time.Now(),
                 EndTime:   time.Now().Add(cost.Time),
         }
 
-        return nil</span>
+        return nil
 
+}
+
+func (p *PlanetStruct) CancelBuilding() {
+        p.BuildingInProgressMutex.Lock()
+        defer p.BuildingInProgressMutex.Unlock()
+
+        if p.BuildingInProgress == nil {
+                return
+        }
+
+        p.AddResources(p.BuildingInProgress.Cost)
+        p.BuildingInProgress = nil
+
+        return
 }
 </pre>
 		
@@ -931,20 +960,35 @@ func (r *ResourcesStruct) SubtractBasic(other ResourcesStruct) <span class="cov8
         r.Uranium -= other.Uranium
 }</span>
 
-func (r *ResourcesStruct) HasEnoughFull(other ResourcesStruct) bool <span class="cov8" title="1">{
+func (r *ResourcesStruct) AddBasic(other ResourcesStruct) {
+        r.Metal += other.Metal
+        r.Silicon += other.Silicon
+        r.Uranium += other.Uranium
+}
+
+f</span>unc (r *ResourcesStruct) HasEnoughFull(other ResourcesStruct) bool {
         return r.Metal &gt;= other.Metal &amp;&amp;
                 r.Silicon &gt;= other.Silicon &amp;&amp;
                 r.Uranium &gt;= other.Uranium &amp;&amp;
                 r.Energy &gt;= other.Energy &amp;&amp;
                 r.Time &gt;= other.Time
-}</span>
-func (r *ResourcesStruct) SubtractFull(other ResourcesStruct) <span class="cov8" title="1">{
+}
+</span>
+func (r *ResourcesStruct) AddFull(other ResourcesStruct) {
+        r.Metal += other.Metal
+        r.Silicon += other.Silicon
+        r.Uranium += other.Uranium
+        r.Energy += other.Energy
+        r.Time += other.Time
+}
+
+func (r *ResourcesStruct) SubtractFull(other ResourcesStruct) {
         r.Metal -= other.Metal
         r.Silicon -= other.Silicon
         r.Uranium -= other.Uranium
         r.Energy -= other.Energy
         r.Time -= other.Time
-}</span>
+}
 </pre>
 		
 		<pre class="file" id="file15" style="display: none">package main
