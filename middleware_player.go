@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bitbucket.org/nazwa/galaxy-empires/middleware"
+	"github.com/nazwa/galaxy-empires/middleware"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )

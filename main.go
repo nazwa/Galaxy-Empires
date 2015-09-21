@@ -1,11 +1,10 @@
 package main
 
 import (
-	"bitbucket.org/nazwa/galaxy-empires/middleware"
+	"github.com/nazwa/galaxy-empires/middleware"
 	debug "bitbucket.org/tidepayments/gohelpers/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/kardianos/osext"
-	"log"
 )
 
 var (
@@ -38,7 +37,6 @@ func main() {
 	r.Static("/assets", ROOT_DIR+"/web/assets")
 	r.StaticFile("/", ROOT_DIR+"/web/index.html")
 
-	log.Println("Server started on port: 8080")
 	if err := r.Run(":8080"); err != nil {
 		panic(err)
 	}
