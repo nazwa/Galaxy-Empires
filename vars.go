@@ -43,6 +43,7 @@ var (
 // ERRORS
 // ---->
 var (
+	ErrorPlayerDatabaseMissing error = errors.New("Player database is missing")
 	ErrorInvalidPlanetID       error = errors.New("Invalid planet ID")
 	ErrorInvalidBuildingID     error = errors.New("Invalid building ID")
 	ErrorInvalidCredentials    error = errors.New("Invalid credentials")

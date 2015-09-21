@@ -6,7 +6,6 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"time"
 )
 
 var (
@@ -31,27 +30,10 @@ func Authentication(encryptionKey []byte) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		tokenHeader := c.Request.Header.Get(AuthTokenHeaderKey)
+		token, err := ValidateToken(tokenHeader, encryptionKey)
 
-		if len(tokenHeader) == 0 {
-			c.AbortWithError(http.StatusUnauthorized, ErrorInvalidToken).SetType(gin.ErrorTypePublic)
-			return
-		}
-
-		token, err := jwt.Parse(tokenHeader, func(t *jwt.Token) (interface{}, error) {
-			// Don't forget to validate the alg is what you expect:
-			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
-			}
-
-			if int64(t.Claims["exp"].(float64)) < time.Now().Unix() {
-				return nil, ErrorInvalidToken
-			}
-
-			return encryptionKey, nil
-		})
-
-		if err != nil || !token.Valid {
-			c.AbortWithError(http.StatusUnauthorized, ErrorInvalidToken).SetType(gin.ErrorTypePublic)
+		if err != nil {
+			c.AbortWithError(http.StatusUnauthorized, err).SetType(gin.ErrorTypePublic)
 			return
 		}
 
@@ -59,4 +41,29 @@ func Authentication(encryptionKey []byte) gin.HandlerFunc {
 		c.Set(AuthTokenKey, token)
 
 	}
+}
+
+func ValidateToken(tokenText string, encryptionKey []byte) (*jwt.Token, error) {
+	if len(tokenText) == 0 {
+		return nil, ErrorInvalidToken
+	}
+
+	token, err := jwt.Parse(tokenText, func(t *jwt.Token) (interface{}, error) {
+		// Don't forget to validate the alg is what you expect:
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
+		}
+
+		if _, ok := t.Claims["id"]; !ok {
+			return nil, ErrorInvalidToken
+		}
+
+		return encryptionKey, nil
+	})
+
+	if err != nil || !token.Valid {
+		return nil, ErrorInvalidToken
+	}
+
+	return token, nil
 }
