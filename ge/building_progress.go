@@ -1,11 +1,11 @@
-package main
+package ge
 
 import (
 	"time"
 )
 
-type ResearchProgressStruct struct {
-	Research  *ResearchStruct
+type BuildingProgressStruct struct {
+	Building  *BuildingStruct
 	StartTime time.Time
 	EndTime   time.Time
 	Cost      ResourcesStruct

@@ -1,4 +1,4 @@
-package main
+package ge
 
 import (
 	"bitbucket.org/tidepayments/gohelpers/maths"
@@ -16,19 +16,19 @@ type GalaxySystemStruct struct {
 	count       int64
 }
 
-func NewUniverseStruct(galaxies, systems, planets int64) *UniverseStruct {
+func NewUniverseStruct(universeSize CoordinatesStruct) *UniverseStruct {
 	universe := &UniverseStruct{}
 	universe.size = CoordinatesStruct{
-		Galaxy: galaxies,
-		System: systems,
-		Planet: planets,
+		Galaxy: universeSize.Galaxy,
+		System: universeSize.System,
+		Planet: universeSize.Planet,
 	}
 
-	universe.galaxies = make([][]GalaxySystemStruct, galaxies)
+	universe.galaxies = make([][]GalaxySystemStruct, universeSize.Galaxy)
 	for i := range universe.galaxies {
-		universe.galaxies[i] = make([]GalaxySystemStruct, systems)
+		universe.galaxies[i] = make([]GalaxySystemStruct, universeSize.System)
 		for j := range universe.galaxies[i] {
-			universe.galaxies[i][j].planets = make([]*PlanetStruct, planets)
+			universe.galaxies[i][j].planets = make([]*PlanetStruct, universeSize.Planet)
 			universe.galaxies[i][j].count = 0
 			universe.galaxies[i][j].coordinates = CoordinatesStruct{
 				Galaxy: int64(i),
