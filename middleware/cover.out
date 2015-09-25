@@ -47,3 +47,15 @@ github.com\nazwa\galaxy-empires\middleware\errors.go:53.42,55.7 1 0
 github.com\nazwa\galaxy-empires\middleware\errors.go:59.44,61.7 1 0
 github.com\nazwa\galaxy-empires\middleware\errors.go:67.23,69.7 1 0
 github.com\nazwa\galaxy-empires\middleware\errors.go:74.27,76.5 1 0
+github.com\nazwa\galaxy-empires\middleware\planet.go:11.41,13.30 1 1
+github.com\nazwa\galaxy-empires\middleware\planet.go:13.30,17.17 3 1
+github.com\nazwa\galaxy-empires\middleware\planet.go:22.3,23.20 2 1
+github.com\nazwa\galaxy-empires\middleware\planet.go:27.3,27.36 1 1
+github.com\nazwa\galaxy-empires\middleware\planet.go:17.17,20.4 2 1
+github.com\nazwa\galaxy-empires\middleware\planet.go:23.20,26.4 2 1
+github.com\nazwa\galaxy-empires\middleware\player.go:10.68,13.20 1 1
+github.com\nazwa\galaxy-empires\middleware\player.go:17.2,17.30 1 1
+github.com\nazwa\galaxy-empires\middleware\player.go:13.20,14.39 1 1
+github.com\nazwa\galaxy-empires\middleware\player.go:17.30,19.51 2 1
+github.com\nazwa\galaxy-empires\middleware\player.go:19.51,22.4 2 1
+github.com\nazwa\galaxy-empires\middleware\player.go:22.4,24.4 1 1

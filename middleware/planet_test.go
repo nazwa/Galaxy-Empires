@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/nazwa/galaxy-empires/ge"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -20,15 +21,15 @@ func TestPlanetMiddleware(t *testing.T) {
 		handler(c)
 	})
 
-	player := &PlayerStruct{ID: "p1"}
-	c.Set(PlayerObjectKey, player)
+	player := &ge.PlayerStruct{ID: "p1"}
+	c.Set(ge.PlayerObjectKey, player)
 	// Now there is a player, but no planets
 	assert.Panics(t, func() {
 		handler(c)
 	})
 
 	// Now there is a player, but no planet id
-	planet := &PlanetStruct{}
+	planet := &ge.PlanetStruct{}
 	player.AddPlanet(planet)
 	assert.Panics(t, func() {
 		handler(c)
