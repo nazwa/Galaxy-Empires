@@ -1,0 +1,11 @@
+{
+	"Debug": true,
+	"Port": "8080",
+	"Key": "This is a keeey",
+	"Services": {
+		"Rollbar": {
+			"Environment": "Buzu-pc",
+			"Token": ""
+		}
+	}
+}

@@ -1,4 +1,4 @@
-package main
+package ge
 
 import (
 	"encoding/json"
@@ -7,16 +7,18 @@ import (
 )
 
 func LoadFile(file string, target interface{}) error {
-	path := filepath.Join(ROOT_DIR, file)
-
 	// Get the config file
-	config_file, err := ioutil.ReadFile(path)
+	data_file, err := ioutil.ReadFile(file)
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(config_file, target)
+	err = json.Unmarshal(data_file, target)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func BuildFullPath(root, file string) string {
+	return filepath.Join(root, file)
 }

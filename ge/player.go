@@ -1,10 +1,8 @@
-package main
+package ge
 
 import (
-	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"sync"
-	"time"
 )
 
 const (
@@ -36,17 +34,6 @@ func (p *PlayerStruct) HashPassword() error {
 		p.Password = hashedPassword
 	}
 	return err
-}
-
-func (p *PlayerStruct) CreateLoginToken() (string, error) {
-
-	token := jwt.New(jwt.SigningMethodHS256)
-	// Set some claims
-	token.Claims["id"] = p.ID
-	token.Claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
-	// Sign and get the complete encoded token as a string
-	return token.SignedString(JWTKey)
-
 }
 
 func (p *PlayerStruct) CheckPassword(password string) error {

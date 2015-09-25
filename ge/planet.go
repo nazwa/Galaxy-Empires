@@ -1,4 +1,4 @@
-package main
+package ge
 
 import (
 	"sync"
@@ -210,24 +210,24 @@ func (p *PlanetStruct) BuildResearch(baseData *BaseDataStore, id string) error {
 	var toLevel int64
 	var ok bool
 
-	if building, ok = baseData.Buildings[id]; !ok {
+	if research, ok = baseData.Research[id]; !ok {
 		return ErrorInvalidBuildingID
 	}
 
-	if toLevel, ok = p.Buildings[id]; !ok {
+	if toLevel, ok = p.Research[id]; !ok {
 		toLevel = 1
 	} else {
 		toLevel++
 	}
 
-	cost := building.GetCost(toLevel)
+	cost := research.GetCost(toLevel)
 
 	if err := p.SubtractResources(cost); err != nil {
 		return err
 	}
 
-	p.BuildingInProgress = &BuildingProgressStruct{
-		Building:  building,
+	p.ResearchInProgress = &ResearchProgressStruct{
+		Research:  research,
 		Cost:      cost,
 		StartTime: time.Now(),
 		EndTime:   time.Now().Add(cost.Time),
@@ -237,15 +237,15 @@ func (p *PlanetStruct) BuildResearch(baseData *BaseDataStore, id string) error {
 }
 
 func (p *PlanetStruct) CancelResearch() {
-	p.BuildingInProgressMutex.Lock()
-	defer p.BuildingInProgressMutex.Unlock()
+	p.ResearchInProgressMutex.Lock()
+	defer p.ResearchInProgressMutex.Unlock()
 
-	if p.BuildingInProgress == nil {
+	if p.ResearchInProgress == nil {
 		return
 	}
 
-	p.AddResources(p.BuildingInProgress.Cost)
-	p.BuildingInProgress = nil
+	p.AddResources(p.ResearchInProgress.Cost)
+	p.ResearchInProgress = nil
 
 	return
 }

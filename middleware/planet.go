@@ -1,7 +1,8 @@
-package main
+package middleware
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/nazwa/galaxy-empires/ge"
 	"net/http"
 	"strconv"
 )
@@ -10,7 +11,7 @@ import (
 func PlanetMiddleware() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
-		player := c.MustGet(PlayerObjectKey).(*PlayerStruct)
+		player := c.MustGet(ge.PlayerObjectKey).(*ge.PlayerStruct)
 
 		id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
 		if err != nil {
@@ -20,9 +21,9 @@ func PlanetMiddleware() gin.HandlerFunc {
 
 		planet := player.GetPlanet(id)
 		if planet == nil {
-			c.AbortWithError(http.StatusBadRequest, ErrorInvalidPlanetID).SetType(gin.ErrorTypePublic)
+			c.AbortWithError(http.StatusBadRequest, ge.ErrorInvalidPlanetID).SetType(gin.ErrorTypePublic)
 			return
 		}
-		c.Set(PlanetObjectKey, planet)
+		c.Set(ge.PlanetObjectKey, planet)
 	}
 }
