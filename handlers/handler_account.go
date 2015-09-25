@@ -1,7 +1,9 @@
-package main
+package handlers
 
 import (
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/nazwa/galaxy-empires/ge"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
@@ -72,8 +74,19 @@ func (u *AccountHandler) RegisterHandler(c *gin.Context) {
 	u.sendLoginToken(c, player)
 }
 
+func (u *AccountHandler) createLoginToken(player *ge.PlayerStruct) string {
+
+	token := jwt.New(jwt.SigningMethodHS256)
+	// Set some claims
+	token.Claims["id"] = player.ID
+	token.Claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
+	// Sign and get the complete encoded token as a string
+	return token.SignedString(JWTKey)
+
+}
+
 func (u *AccountHandler) sendLoginToken(c *gin.Context, player *PlayerStruct) {
-	if token, err := player.CreateLoginToken(); err != nil {
+	if token, err := u.createLoginToken(player); err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	} else {
 		c.JSON(http.StatusOK, gin.H{"Token": token})

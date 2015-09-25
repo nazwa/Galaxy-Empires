@@ -1,0 +1,10 @@
+{
+	"Debug": true,
+	"Key": "This is a keeey",
+	"Services": {
+		"Rollbar": {
+			"Environment": "Buzu-pc",
+			"Token": ""
+		}
+	}
+}

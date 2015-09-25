@@ -1,4 +1,4 @@
-package main
+package ge
 
 import (
 	"github.com/stretchr/testify/assert"

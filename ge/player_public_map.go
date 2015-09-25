@@ -1,4 +1,4 @@
-package main
+package ge
 
 func (p *PlayerStruct) ToPublic(private bool) map[string]interface{} {
 	data := make(map[string]interface{})

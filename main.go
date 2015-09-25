@@ -1,24 +1,24 @@
 package main
 
 import (
-	"github.com/nazwa/galaxy-empires/middleware"
 	debug "bitbucket.org/tidepayments/gohelpers/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/kardianos/osext"
+	"github.com/nazwa/galaxy-empires/ge"
+	"github.com/nazwa/galaxy-empires/middleware"
 )
 
 var (
-	ROOT_DIR   string
-	BaseData   *BaseDataStore
-	PlayerData *PlayerDataStore
-	Universe   *UniverseStruct
-	JWTKey     []byte = []byte("This is a key")
+	ROOT_DIR string
+
+	GE *ge.GalaxyEmpires
 )
 
 func main() {
-	Universe = NewUniverseStruct(1, 15, 5)
 
 	ROOT_DIR, _ = osext.ExecutableFolder()
+
+	Universe = NewUniverseStruct(1, 15, 5)
 
 	BaseData = NewBaseDataStore("data/buildings.json", "data/research.json")
 	PlayerData = NewPlayerDataStore("data/players.json")

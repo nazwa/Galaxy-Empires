@@ -1,4 +1,4 @@
-package main
+package ge
 
 import (
 	"fmt"
@@ -16,8 +16,8 @@ type BuildingStruct struct {
 	BaseProduction float64
 	Requirements   RequirementsStruct
 
-	CostEquations       EquationStruct
-	BuildEqations       EquationStruct
+	CostEquations EquationStruct
+	//BuildEqations       EquationStruct
 	ProductionEquations EquationStruct
 
 	costTable       []ResourcesStruct
