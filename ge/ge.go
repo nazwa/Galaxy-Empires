@@ -8,8 +8,8 @@ type GalaxyEmpires struct {
 	Universe   *UniverseStruct
 }
 
-func NewGalaxyEmpires(dataDir string, universeSize CoordinatesStruct) {
-	g := GalaxyEmpires{}
+func NewGalaxyEmpires(dataDir string, universeSize CoordinatesStruct) *GalaxyEmpires {
+	g := &GalaxyEmpires{}
 
 	g.PlayerData = NewPlayerDataStore(
 		BuildFullPath(dataDir, "players.json"),
@@ -19,5 +19,7 @@ func NewGalaxyEmpires(dataDir string, universeSize CoordinatesStruct) {
 		BuildFullPath(dataDir, "research.json"),
 	)
 	g.Universe = NewUniverseStruct(universeSize)
+
+	return g
 
 }
