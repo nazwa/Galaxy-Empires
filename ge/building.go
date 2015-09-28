@@ -6,18 +6,40 @@ import (
 	"time"
 )
 
+type geBuildingType int64
+type geBuildingID int64
+
+// Constant IDs for different building types
+const (
+	BuildingTypeMine    geBuildingType = iota + 1
+	BuildingTypePower   geBuildingType = iota + 1
+	BuildingTypeStorage geBuildingType = iota + 1
+	BuildingTypeGeneric geBuildingType = iota + 1
+)
+
+// List of basic building IDs
+const (
+	BuildingIdMineMetal   geBuildingID = iota + 1
+	BuildingIdMineSilicon geBuildingID = iota + 1
+	BuildingIdMineUranium geBuildingID = iota + 1
+
+	BuildingIdPowerPlant geBuildingID = iota + 1
+
+	BuildingIdGenericFactory  geBuildingID = iota + 1
+	BuildingIdGenericShipyard geBuildingID = iota + 1
+	BuildingIdGenericLab      geBuildingID = iota + 1
+	BuildingIdGenericCommand  geBuildingID = iota + 1
+)
+
 type BuildingStruct struct {
-	ID             string
-	Name           string
-	Category       string
-	Produces       string
-	Description    string
+	ID   geBuildingID
+	Type geBuildingType
+
 	BaseCost       ResourcesStruct
 	BaseProduction float64
 	Requirements   RequirementsStruct
 
-	CostEquations EquationStruct
-	//BuildEqations       EquationStruct
+	CostEquations       EquationStruct
 	ProductionEquations EquationStruct
 
 	costTable       []ResourcesStruct
@@ -47,11 +69,6 @@ func (b *BuildingStruct) PrecalculateCostTable(limit int64) {
 			Time:    time.Duration(float64(b.BaseCost.Time*time.Second) * factor),
 		}
 	}
-	fmt.Println(b.Name)
-	fmt.Println(b.costTable[1])
-	fmt.Println(b.costTable[2])
-	fmt.Println("--")
-	time.Now()
 }
 
 func (b *BuildingStruct) GetCost(level int64) ResourcesStruct {
