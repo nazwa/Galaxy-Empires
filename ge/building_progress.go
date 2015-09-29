@@ -5,7 +5,7 @@ import (
 )
 
 type BuildingProgressStruct struct {
-	Building  *BuildingStruct
+	Building  BuildingInterface
 	StartTime time.Time
 	EndTime   time.Time
 	Cost      ResourcesStruct

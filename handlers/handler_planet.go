@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/nazwa/galaxy-empires/ge"
 	"github.com/nazwa/galaxy-empires/middleware"
@@ -53,9 +54,19 @@ func (p *PlanetHandler) Rename(c *gin.Context) {
 
 func (p *PlanetHandler) BuildBuilding(c *gin.Context) {
 	planet := c.MustGet(ge.PlanetObjectKey).(*ge.PlanetStruct)
-	building_id := c.Params.ByName("type")
+	tempID := c.Params.ByName("type")
 
-	if err := planet.BuildBuilding(p.GE.BaseData, building_id); err != nil {
+	buildingId, err := ge.BuildingIdFromString(tempID)
+	if err != nil {
+		fmt.Println(tempID)
+		c.AbortWithError(http.StatusBadRequest, err).SetType(gin.ErrorTypePublic)
+		return
+	}
+
+	if err := planet.BuildBuilding(buildingId); err != nil {
+		fmt.Println("ERROR")
+		fmt.Println(buildingId)
+		fmt.Println(planet.Buildings)
 		c.AbortWithError(http.StatusBadRequest, err).SetType(gin.ErrorTypePublic)
 		return
 	}

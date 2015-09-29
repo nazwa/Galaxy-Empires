@@ -22,12 +22,7 @@ const (
 	// <----
 	// Buildings
 	// ---->
-	MineCategoryString     string = "Mine"
-	MetalMineCategoryKey   string = "Metal"
-	SiliconMineCategoryKey string = "Silicon"
-	UraniumMineCategoryKey string = "Uranium"
-	PowerPlantCategoryKey  string = "Energy"
-	PrecalculateLevels     int64  = 50
+	PrecalculateLevels int64 = 50
 )
 
 // <----
@@ -52,6 +47,7 @@ var (
 var (
 	ErrorPlayerDatabaseMissing error = errors.New("Player database is missing")
 	ErrorInvalidPlanetID       error = errors.New("Invalid planet ID")
+	ErrorInvalidBuildingType   error = errors.New("Invalid building type")
 	ErrorInvalidBuildingID     error = errors.New("Invalid building ID")
 	ErrorInvalidCredentials    error = errors.New("Invalid credentials")
 	ErrorPlayerNotFound        error = errors.New("Player not found")

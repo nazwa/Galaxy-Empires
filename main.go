@@ -40,5 +40,4 @@ func main() {
 	if err := r.Run(":" + config.Config.Port); err != nil {
 		panic(err)
 	}
-
 }

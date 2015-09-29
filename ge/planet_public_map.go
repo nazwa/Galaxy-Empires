@@ -10,7 +10,7 @@ func (p *PlanetStruct) ToPublic(private bool) map[string]interface{} {
 	if private {
 		data["Resources"] = p.Resources
 		data["ResourcesHourly"] = p.ResourcesHourly
-		data["Buildings"] = p.Buildings
+		data["Buildings"] = p.Buildings.SimplifiedLevels()
 		data["Research"] = p.Research
 		data["BuildingProgress"] = p.BuildingInProgress
 	}
