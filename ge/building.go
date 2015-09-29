@@ -1,7 +1,6 @@
 package ge
 
 import (
-	"fmt"
 	"math"
 	"time"
 )
@@ -31,6 +30,11 @@ const (
 	BuildingIdGenericCommand  geBuildingID = iota + 1
 )
 
+type BuildingInterface interface {
+	GetCost(level int64) ResourcesStruct
+	PrecalculateCost(levels int64)
+}
+
 type BuildingStruct struct {
 	ID   geBuildingID
 	Type geBuildingType
@@ -44,6 +48,11 @@ type BuildingStruct struct {
 
 	costTable       []ResourcesStruct
 	productionTable []int64
+}
+
+type BuildingLevelStruct struct {
+	Building BuildingInterface
+	Level    int64
 }
 
 func (b *BuildingStruct) PrecalculateProductionTable(limit int64) {
