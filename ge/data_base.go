@@ -39,10 +39,10 @@ func (b *BaseDataStore) PrecalculateCostsAndProduction() {
 	}
 }
 
-func (b *BaseDataStore) GetStartingBuildings() map[geBuildingID]BuildingLevelStruct {
-	list := make(map[geBuildingID]BuildingLevelStruct)
+func (b *BaseDataStore) GetStartingBuildings() map[geBuildingID]*BuildingLevelStruct {
+	list := make(map[geBuildingID]*BuildingLevelStruct)
 	for id, building := range b.Buildings {
-		list[id] = BuildingLevelStruct{
+		list[id] = &BuildingLevelStruct{
 			Building: building,
 			Level:    0,
 		}
@@ -59,6 +59,7 @@ func (b *BaseDataStore) LoadStartingBuildings() {
 			CostEquations: EquationStruct{1, 1.5, 1},
 		},
 		productionEquations: EquationStruct{1, 1.1, 1},
+		baseProduction:      100,
 	}
 	b.Buildings[BuildingIdMineSilicon] = &BuildingMineStruct{
 		BuildingStruct: BuildingStruct{
@@ -67,6 +68,7 @@ func (b *BaseDataStore) LoadStartingBuildings() {
 			CostEquations: EquationStruct{1, 1.5, 1},
 		},
 		productionEquations: EquationStruct{1, 1.1, 1},
+		baseProduction:      50,
 	}
 	b.Buildings[BuildingIdMineUranium] = &BuildingMineStruct{
 		BuildingStruct: BuildingStruct{
@@ -75,6 +77,7 @@ func (b *BaseDataStore) LoadStartingBuildings() {
 			CostEquations: EquationStruct{1, 1.5, 1},
 		},
 		productionEquations: EquationStruct{1, 1.1, 1},
+		baseProduction:      0,
 	}
 	b.Buildings[BuildingIdGenericFactory] = &BuildingStruct{
 		ID:            BuildingIdGenericFactory,

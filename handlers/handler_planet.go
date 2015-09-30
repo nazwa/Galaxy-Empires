@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/nazwa/galaxy-empires/ge"
 	"github.com/nazwa/galaxy-empires/middleware"
@@ -40,14 +39,14 @@ func NewPlanetHandler(r *gin.RouterGroup, ge *ge.GalaxyEmpires) *PlanetHandler {
 func (p *PlanetHandler) Get(c *gin.Context) {
 	planet := c.MustGet(ge.PlanetObjectKey).(*ge.PlanetStruct)
 
-	planet.UpdatePlanet(p.GE.BaseData, time.Now())
+	planet.UpdatePlanet(time.Now())
 	c.JSON(http.StatusOK, planet.ToPublic(true))
 }
 
 func (p *PlanetHandler) Rename(c *gin.Context) {
 	planet := c.MustGet(ge.PlanetObjectKey).(*ge.PlanetStruct)
 	rename := c.MustGet(gin.BindKey).(*PlanetRenameForm)
-	planet.Name = rename.Name
+	planet.SetName(rename.Name)
 
 	c.JSON(http.StatusOK, planet.ToPublic(true))
 }
@@ -58,15 +57,11 @@ func (p *PlanetHandler) BuildBuilding(c *gin.Context) {
 
 	buildingId, err := ge.BuildingIdFromString(tempID)
 	if err != nil {
-		fmt.Println(tempID)
 		c.AbortWithError(http.StatusBadRequest, err).SetType(gin.ErrorTypePublic)
 		return
 	}
 
 	if err := planet.BuildBuilding(buildingId); err != nil {
-		fmt.Println("ERROR")
-		fmt.Println(buildingId)
-		fmt.Println(planet.Buildings)
 		c.AbortWithError(http.StatusBadRequest, err).SetType(gin.ErrorTypePublic)
 		return
 	}

@@ -28,8 +28,11 @@ const (
 )
 
 type BuildingInterface interface {
+	GetId() geBuildingID
 	GetCost(level int64) ResourcesStruct
 	PrecalculateCostTable(levels int64)
+
+	CanBuild(planet *PlanetStruct) bool
 }
 
 type BuildingStruct struct {
@@ -49,6 +52,16 @@ type BuildingLevelStruct struct {
 	Level    int64
 }
 
+func (b *BuildingLevelStruct) GetBuildingProduction() float64 {
+	if b == nil {
+		return 0
+	}
+	if mine, ok := b.Building.(BuildingMineInterface); ok {
+		return float64(mine.GetProduction(b.Level))
+	}
+	return 0
+}
+
 func (b *BuildingStruct) PrecalculateCostTable(limit int64) {
 	b.costTable = make([]ResourcesStruct, limit)
 
@@ -59,9 +72,17 @@ func (b *BuildingStruct) PrecalculateCostTable(limit int64) {
 			Silicon: b.BaseCost.Silicon * factor,
 			Uranium: b.BaseCost.Uranium * factor,
 			Energy:  b.BaseCost.Energy * factor,
-			Time:    time.Duration(float64(b.BaseCost.Time*time.Second) * factor),
+			Time:    time.Duration(float64(b.BaseCost.Time) * factor),
 		}
 	}
+}
+
+func (b *BuildingStruct) CanBuild(planet *PlanetStruct) bool {
+	return false
+}
+
+func (b *BuildingStruct) GetId() geBuildingID {
+	return b.ID
 }
 
 func (b *BuildingStruct) GetCost(level int64) ResourcesStruct {

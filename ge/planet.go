@@ -12,24 +12,24 @@ type CoordinatesStruct struct {
 }
 
 type PlanetStruct struct {
-	Position CoordinatesStruct
-	Owner    *PlayerStruct
+	position CoordinatesStruct
+	owner    *PlayerStruct
 
-	Resources           ResourcesStruct
-	ResourcesHourly     ResourcesStruct
-	ResourcesUpdateTime time.Time
-	ResourcesMutex      sync.Mutex
+	resourcesMutex          sync.Mutex
+	resources               ResourcesStruct
+	hourlyResources         ResourcesStruct
+	lastResourcesUpdateTime time.Time
 
-	Name string
+	name string
 
-	Research  map[string]int64
-	Buildings geBuildingsLevelMap
+	research  map[string]int64
+	buildings geBuildingsLevelMap
 
-	BuildingInProgress      *BuildingProgressStruct
-	BuildingInProgressMutex sync.Mutex
+	buildingInProgress      *BuildingProgressStruct
+	buildingInProgressMutex sync.Mutex
 
-	ResearchInProgress      *ResearchProgressStruct
-	ResearchInProgressMutex sync.Mutex
+	researchInProgress      *ResearchProgressStruct
+	researchInProgressMutex sync.Mutex
 }
 
 func GenerateNewPlanet(universe *UniverseStruct, baseData *BaseDataStore) (*PlanetStruct, error) {
@@ -39,19 +39,19 @@ func GenerateNewPlanet(universe *UniverseStruct, baseData *BaseDataStore) (*Plan
 	}
 
 	planet := &PlanetStruct{}
-	planet.Position = *position
-	planet.Name = DefaultPlanetName
-	planet.Buildings = baseData.GetStartingBuildings()
+	planet.position = *position
+	planet.name = DefaultPlanetName
+	planet.buildings = baseData.GetStartingBuildings()
 
 	// Set basic mine levels
-	planet.Research = make(map[string]int64)
-	planet.Resources = ResourcesStruct{
+	planet.research = make(map[string]int64)
+	planet.resources = ResourcesStruct{
 		Metal:   1000,
 		Silicon: 1000,
 		Uranium: 0,
 		Energy:  0,
 	}
-	planet.ResourcesUpdateTime = time.Now()
+	planet.lastResourcesUpdateTime = time.Now()
 	planet.UpdateHourlyProduction()
 
 	universe.AddPlanet(position, planet)
@@ -59,113 +59,129 @@ func GenerateNewPlanet(universe *UniverseStruct, baseData *BaseDataStore) (*Plan
 	return planet, nil
 }
 
-func (p *PlanetStruct) UpdatePlanet(baseData *BaseDataStore, now time.Time) {
-	// Make sure no mines have been built while we were away
-	// This will recalculate resources up to the time of the construction end
-	p.UpdateConstruction(baseData, now)
+func (p *PlanetStruct) GetBuilding(id geBuildingID) *BuildingLevelStruct {
+	if b, ok := p.buildings[id]; ok {
+		return b
+	}
+	return nil
 
-	// Recalculate resources for real now
-	p.RecalculateResources(baseData, now)
 }
 
-func (p *PlanetStruct) RecalculateResources(baseData *BaseDataStore, now time.Time) {
-	p.ResourcesMutex.Lock()
-	defer p.ResourcesMutex.Unlock()
+func (p *PlanetStruct) SetName(name string) {
+	p.name = name
+}
 
-	timeDiff := now.Sub(p.ResourcesUpdateTime)
+func (p *PlanetStruct) UpdatePlanet(now time.Time) {
+	// Make sure no mines have been built while we were away
+	// This will recalculate resources up to the time of the construction end
+	p.UpdateConstruction(now)
+
+	// Recalculate resources for real now
+	p.RecalculateResources(now)
+}
+
+func (p *PlanetStruct) RecalculateResources(now time.Time) {
+	p.resourcesMutex.Lock()
+	defer p.resourcesMutex.Unlock()
+
+	timeDiff := now.Sub(p.lastResourcesUpdateTime)
 	// We dont want to udpate resources more often than this time
 	if timeDiff < MinimumResourceTime {
 		return
 	}
 
-	p.Resources.Metal += p.CalculateProduction(p.ResourcesHourly.Metal, timeDiff)
-	p.Resources.Silicon += p.CalculateProduction(p.ResourcesHourly.Silicon, timeDiff)
-	p.Resources.Uranium += p.CalculateProduction(p.ResourcesHourly.Uranium, timeDiff)
+	p.resources.Metal += p.CalculateProductionSince(p.hourlyResources.Metal, timeDiff)
+	p.resources.Silicon += p.CalculateProductionSince(p.hourlyResources.Silicon, timeDiff)
+	p.resources.Uranium += p.CalculateProductionSince(p.hourlyResources.Uranium, timeDiff)
 
-	p.ResourcesUpdateTime = now
+	p.lastResourcesUpdateTime = now
 }
 
-func (p *PlanetStruct) CalculateProduction(production float64, timeDiff time.Duration) float64 {
+// Calculates production of the resource during given time duration
+func (p *PlanetStruct) CalculateProductionSince(production float64, timeDiff time.Duration) float64 {
 	return production / 3600 * timeDiff.Seconds()
 }
 
+// Updates cached production values for current mine levels
 func (p *PlanetStruct) UpdateHourlyProduction() {
-	p.ResourcesHourly = ResourcesStruct{
-		Metal:   float64(p.Buildings[BuildingIdMineMetal].Building.(BuildingMineInterface).GetProduction(p.Buildings[BuildingIdMineMetal].Level)),
-		Silicon: float64(p.Buildings[BuildingIdMineSilicon].Building.(BuildingMineInterface).GetProduction(p.Buildings[BuildingIdMineSilicon].Level)),
-		Uranium: float64(p.Buildings[BuildingIdMineUranium].Building.(BuildingMineInterface).GetProduction(p.Buildings[BuildingIdMineUranium].Level)),
+	p.hourlyResources = ResourcesStruct{
+		Metal:   p.GetBuilding(BuildingIdMineMetal).GetBuildingProduction(),
+		Silicon: p.GetBuilding(BuildingIdMineSilicon).GetBuildingProduction(),
+		Uranium: p.GetBuilding(BuildingIdMineUranium).GetBuildingProduction(),
 	}
 }
 
 func (p *PlanetStruct) SubtractResources(resources ResourcesStruct) error {
-	p.ResourcesMutex.Lock()
-	defer p.ResourcesMutex.Unlock()
+	p.resourcesMutex.Lock()
+	defer p.resourcesMutex.Unlock()
 
-	if !p.Resources.HasEnoughBasic(resources) {
+	if !p.resources.HasEnoughBasic(resources) {
 		return ErrorInsufficientResources
 	}
-	p.Resources.SubtractBasic(resources)
+	p.resources.SubtractBasic(resources)
 
 	return nil
 }
 
 //Adding should always be successful, so no need for errors! yay
 func (p *PlanetStruct) AddResources(resources ResourcesStruct) {
-	p.ResourcesMutex.Lock()
-	defer p.ResourcesMutex.Unlock()
+	p.resourcesMutex.Lock()
+	defer p.resourcesMutex.Unlock()
 
-	p.Resources.AddBasic(resources)
+	p.resources.AddBasic(resources)
 }
 
 // Checks if there are any buildings that have finished
 // Recalculates resources before completition
 // @todo: FIRE EVENT TO NOTIFY BUILDING COMPLETITION
-func (p *PlanetStruct) UpdateConstruction(baseData *BaseDataStore, now time.Time) {
-	p.BuildingInProgressMutex.Lock()
-	defer p.BuildingInProgressMutex.Unlock()
+func (p *PlanetStruct) UpdateConstruction(now time.Time) {
+	p.buildingInProgressMutex.Lock()
+	defer p.buildingInProgressMutex.Unlock()
 
-	if p.BuildingInProgress == nil {
+	if p.buildingInProgress == nil {
 		return
 	}
 
 	// Triggers if building end time has already passed
-	if p.BuildingInProgress.EndTime.Sub(now) < 0 {
+	if p.buildingInProgress.EndTime.Sub(now) < 0 {
 		// Recalculate the resources with old levels
-		p.RecalculateResources(baseData, p.BuildingInProgress.EndTime)
+		p.RecalculateResources(p.buildingInProgress.EndTime)
 
 		// Finish the actual build
-		level := p.Buildings[p.BuildingInProgress.Building.(*BuildingStruct).ID]
-		level.Level++
+		// This should NEVER EVER panic, but including it as a failsafe
+		building := p.GetBuilding(p.buildingInProgress.Building.(BuildingInterface).GetId())
+		if building == nil {
+			panic(ErrorInvalidBuildingID)
+		}
+		building.Level++
 
-		p.BuildingInProgress = nil
+		p.buildingInProgress = nil
 		p.UpdateHourlyProduction()
 	}
 }
 
 func (p *PlanetStruct) BuildBuilding(id geBuildingID) error {
-	p.BuildingInProgressMutex.Lock()
-	defer p.BuildingInProgressMutex.Unlock()
+	p.buildingInProgressMutex.Lock()
+	defer p.buildingInProgressMutex.Unlock()
 
-	if p.BuildingInProgress != nil {
+	if p.buildingInProgress != nil {
 		return ErrorBuildingInProgress
 	}
 
-	var current BuildingLevelStruct
-	var ok bool
-
-	if current, ok = p.Buildings[id]; !ok {
+	current := p.GetBuilding(id)
+	if current == nil {
 		return ErrorInvalidBuildingID
 	}
 
 	toLevel := current.Level + 1
 
-	cost := current.Building.(*BuildingStruct).GetCost(toLevel)
+	cost := current.Building.(BuildingInterface).GetCost(toLevel)
 
 	if err := p.SubtractResources(cost); err != nil {
 		return err
 	}
 
-	p.BuildingInProgress = &BuildingProgressStruct{
+	p.buildingInProgress = &BuildingProgressStruct{
 		Building:  current.Building,
 		Cost:      cost,
 		StartTime: time.Now(),
@@ -176,19 +192,20 @@ func (p *PlanetStruct) BuildBuilding(id geBuildingID) error {
 }
 
 func (p *PlanetStruct) CancelBuilding() {
-	p.BuildingInProgressMutex.Lock()
-	defer p.BuildingInProgressMutex.Unlock()
+	p.buildingInProgressMutex.Lock()
+	defer p.buildingInProgressMutex.Unlock()
 
-	if p.BuildingInProgress == nil {
+	if p.buildingInProgress == nil {
 		return
 	}
 
-	p.AddResources(p.BuildingInProgress.Cost)
-	p.BuildingInProgress = nil
+	p.AddResources(p.buildingInProgress.Cost)
+	p.buildingInProgress = nil
 
 	return
 }
 
+/*
 func (p *PlanetStruct) BuildResearch(baseData *BaseDataStore, id string) error {
 	p.ResearchInProgressMutex.Lock()
 	defer p.ResearchInProgressMutex.Unlock()
@@ -239,4 +256,4 @@ func (p *PlanetStruct) CancelResearch() {
 	p.ResearchInProgress = nil
 
 	return
-}
+}*/

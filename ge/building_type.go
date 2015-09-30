@@ -6,7 +6,7 @@ import (
 
 type geBuildingType int64
 type geBuildingID int64
-type geBuildingsLevelMap map[geBuildingID]BuildingLevelStruct
+type geBuildingsLevelMap map[geBuildingID]*BuildingLevelStruct
 
 // Converts string into geBuildingType
 func BuildingTypeFromString(val string) (geBuildingType, error) {

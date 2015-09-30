@@ -45,7 +45,7 @@ func TestSystemOperations(t *testing.T) {
 	universe := NewUniverseStruct(CoordinatesStruct{1, 1, 1})
 
 	planet := &PlanetStruct{
-		Name: "TestPlanet",
+		name: "TestPlanet",
 	}
 
 	// There should be no planets

@@ -44,7 +44,7 @@ func (p *PlayerStruct) AddPlanet(planet *PlanetStruct) {
 	if planet == nil {
 		return
 	}
-	if planet.Owner == p {
+	if planet.owner == p {
 		return
 	}
 
@@ -54,7 +54,7 @@ func (p *PlayerStruct) AddPlanet(planet *PlanetStruct) {
 	if p.Planets == nil {
 		p.Planets = make([]*PlanetStruct, 0)
 	}
-	planet.Owner = p
+	planet.owner = p
 	p.Planets = append(p.Planets, planet)
 }
 
